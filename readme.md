@@ -5,6 +5,8 @@
 A constexpr type safe replacement of `<cctype>` for c++,
 providing predicates valid for codepoints less than `0x80`.
 
+[basic example](https://gcc.godbolt.org/z/W5sqd5K69)
+
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
 static_assert( ascii::is_alnum('a') and not ascii::is_digit(U'⛵') );
@@ -12,7 +14,7 @@ int main()
 {
     if( ascii::is_space('c') )
     {
-        ...
+        return 1;
     }
 }
 ```
@@ -42,7 +44,7 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 | `ascii::is_print()` | aka `std::isprint()`  |
 
 
-### Non-standard or composite predicates
+### Non-standard predicates
 
 |                              |                                        |
 |------------------------------|----------------------------------------|
@@ -52,9 +54,8 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 | `ascii::is_endline()`        | aka `==\n`                             |
 
 
-### Conveniency predicates
-Not all strictly related to *ASCII*, useful when passing
-predicates around.
+### Helper predicates
+Not strictly related to *ASCII*, but useful
 
 |                                        |                                      |
 |----------------------------------------|--------------------------------------|
@@ -62,10 +63,17 @@ predicates around.
 | `ascii::is<C>()`                       | equality to a single codepoint       |
 | `ascii::is_any_of<C,...>()`            | contained in a set of codepoints     |
 | `ascii::is_none_of<C,...>()`           | not contained in a set of codepoints |
-| `ascii::is_space_or_any_of<C,...>()`   |                                      |
-| `ascii::is_alnum_or_any_of<C,...>()`   |                                      |
-| `ascii::is_digit_or_any_of<C,...>()`   |                                      |
-| `ascii::is_punct_and_none_of<C,...>()` |                                      |
+
+
+
+### Composite predicates
+
+|                                        |
+|----------------------------------------|
+| `ascii::is_space_or_any_of<C,...>()`   |
+| `ascii::is_alnum_or_any_of<C,...>()`   |
+| `ascii::is_digit_or_any_of<C,...>()`   |
+| `ascii::is_punct_and_none_of<C,...>()` |
 
 
 ### Case conversion
@@ -84,37 +92,74 @@ If you need to check and convert case safely use a unicode library.
 
 ## Examples
 
+---
+[simple](https://gcc.godbolt.org/z/rYvbafh5f)
 
 ```cpp
+#include "ascii_predicates.hpp" // ascii::is_*
+
+void query_char(const char ch)
+{
+    const bool alnum = ascii::is_alnum(ch);
+    const bool space = ascii::is_space(ch);
+    //...
+    const bool l = ascii::is<'l'>(ch);
+    const bool l_or_o = ascii::is_any_of<'l','o'>(ch);
+    const bool some_punct = ascii::is_punct_and_none_of<'#','&'>(ch);
+}
+```
+
+---
+[overloads](https://gcc.godbolt.org/z/MGozb1fx3)
+
+```cpp
+#include <iostream>
 #include <string_view>
 using namespace std::literals; // "..."sv
-
 #include "ascii_predicates.hpp" // ascii::is_*
 
 int main()
 {
-    for( const char ch : "Hello, 123 \n"sv )
+    for( const char ch : "hello, 123"sv )
     {
-        const bool alnum = ascii::is_alnum(ch);
-        const bool space = ascii::is_space(ch);
-        //...
-        const bool l = ascii::is<'l'>(ch);
-        const bool l_or_o = ascii::is_any_of<'l','o'>(ch);
-        const bool some_punct = ascii::is_punct_and_none_of<'#','&'>(ch);
+        std::cout << ascii::is_alnum_or_any_of<'l'>(ch) << ' ';
+    }
+    std::cout << '\n';
+
+    for( const char32_t cp : U"hello, 😀❤️"sv )
+    {
+        std::cout << ascii::is_alnum_or_any_of<U'l'>(cp) << ' ';
     }
 }
 ```
 
-Does the following make sense?
-Yes if you're parsing markup (ASCII punctuation):
+---
+[simple loop](https://gcc.godbolt.org/z/zb869MKon)
 
 ```cpp
-for( const char32_t cp : U"<てぃあじぃ>❤️</てぃあじぃ>"sv )
+#include <iostream>
+#include <string_view>
+using namespace std::literals; // "..."sv
+#include "ascii_predicates.hpp" // ascii::is_*
+
+int main()
 {
-    if( ascii::is<U'>'>(cp) ) break; // found >
+    const auto csv = U"😊, 😇😇; 😂... 🤣"sv;
+    std::size_t i = 0;
+    while( i<csv.size() )
+    {
+        if( ascii::is_punct(csv[i]) ) ++i;
+        else if( ascii::is_space(csv[i]) ) ++i;
+        else
+           {
+            std::cout << ' ' << i << ':' << to_utf8(csv[i]);
+            ++i;
+           }
+    }
 }
 ```
 
+---
 An example passing predicates:
 
 ```cpp
@@ -141,3 +186,5 @@ class SimpleParser
 SimpleParser p(U"🤪  😎  abc123");
 p.skip_while( ascii::is_space_or_any_of<U'😊',U'🤪',U'😎'> );
 ```
+
+.
