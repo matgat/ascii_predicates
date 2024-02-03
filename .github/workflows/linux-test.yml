@@ -1,0 +1,34 @@
+name: linux-test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use a recent compiler
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa -y
+        sudo apt-get update
+        sudo apt install g++-13 gcc-13
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 --slave /usr/bin/g++ g++ /usr/bin/g++-13 --slave /usr/bin/gcov gcov /usr/bin/gcov-13
+
+    - name: Download ut.hpp
+      run: |
+        curl -O https://raw.githubusercontent.com/boost-ext/ut/master/include/boost/ut.hpp
+
+    - name: build
+      run: |
+        g++ --version
+        g++ -std=c++2b -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -o test test.cpp
+
+    - name: run_tests
+      run: ./test
