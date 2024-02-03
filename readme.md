@@ -2,8 +2,20 @@
 [![linux-test](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml)
 [![ms-test](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml)
 
-A type safe replacement of `<cctype>` for c++,
+A constexpr type safe replacement of `<cctype>` for c++,
 providing predicates valid for codepoints less than `0x80`.
+
+```cpp
+#include "ascii_predicates.hpp" // ascii::is_*
+static_assert( ascii::is_alnum('a') and not ascii::is_digit(U'⛵') );
+int main()
+{
+    if( ascii::is_space('c') )
+    {
+        ...
+    }
+}
+```
 
 All the predicates can be called with either
 `char`, `unsigned char`, or `char32_t`.
