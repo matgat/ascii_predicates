@@ -95,13 +95,12 @@ int main()
 {
     for( const char ch : "Hello, 123 \n"sv )
     {
-        const bool lower = asci::is_lower(ch);
-        const bool alnum = asci::is_alnum(ch);
-        const bool space = asci::is_space(ch);
+        const bool alnum = ascii::is_alnum(ch);
+        const bool space = ascii::is_space(ch);
         //...
-        const bool l = asci::is<'l'>(ch);
-        const bool l_or_o = asci::is_any_of<'l','o'>(ch);
-        const bool some_punct = asci::is_punct_and_none_of<'#','&'>(ch);
+        const bool l = ascii::is<'l'>(ch);
+        const bool l_or_o = ascii::is_any_of<'l','o'>(ch);
+        const bool some_punct = ascii::is_punct_and_none_of<'#','&'>(ch);
     }
 }
 ```
