@@ -9,7 +9,8 @@ providing predicates valid for codepoints less than `0x80`.
 
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
-static_assert( ascii::is_alnum('a') and not ascii::is_digit(U'⛵') );
+static_assert( ascii::is_alnum('a') );
+static_assert( not ascii::is_digit(U'⛵') );
 int main()
 {
     if( ascii::is_space('c') )
@@ -50,12 +51,13 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 |------------------------------|----------------------------------------|
 | `ascii::is_blank()`          | aka `std::isspace() and !='\n'`        |
 | `ascii::is_ident()`          | aka `std::isalnum() or =='_'`          |
+| `ascii::is_float()`          | aka `std::isalnum() or =='+,-,.,E,e'`  |
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
 
 
 ### Helper predicates
-Not strictly related to *ASCII*, but useful
+Not strictly related to *ASCII*, useful
 
 |                                        |                                      |
 |----------------------------------------|--------------------------------------|
@@ -110,7 +112,7 @@ void query_char(const char ch)
 ```
 
 ---
-[overloads](https://gcc.godbolt.org/z/MGozb1fx3)
+[overloads](https://gcc.godbolt.org/z/bafqoh6o4)
 
 ```cpp
 #include <iostream>
@@ -120,21 +122,21 @@ using namespace std::literals; // "..."sv
 
 int main()
 {
-    for( const char ch : "hello, 123"sv )
+    for( const char ch : "hello, @@"sv )
     {
-        std::cout << ascii::is_alnum_or_any_of<'l'>(ch) << ' ';
+        std::cout << ascii::is_alnum_or_any_of<' '>(ch) << ch << ' ';
     }
     std::cout << '\n';
 
-    for( const char32_t cp : U"hello, 😀❤️"sv )
+    for( const char32_t cp : U"hello, ✏️🗒️"sv )
     {
-        std::cout << ascii::is_alnum_or_any_of<U'l'>(cp) << ' ';
+        std::cout << ascii::is_alnum_or_any_of<U' '>(cp) << to_utf8(cp) << ' ';
     }
 }
 ```
 
 ---
-[simple loop](https://gcc.godbolt.org/z/zb869MKon)
+[simple loop](https://gcc.godbolt.org/z/zMbf7raTb)
 
 ```cpp
 #include <iostream>
@@ -160,31 +162,66 @@ int main()
 ```
 
 ---
-An example passing predicates:
+[predicates lexer](https://gcc.godbolt.org/z/ce1s7G7Ez)
 
 ```cpp
+#include <iostream>
 #include <concepts> // std::predicate
+#include <string_view>
+using namespace std::literals; // "..."sv
+#include "ascii_predicates.hpp" // ascii::is_*
 
-class SimpleParser
+class SimpleLexer
 {
  public:
-    const std::u32string_view input;
+    const std::string_view input;
+ private:
     std::size_t i = 0;
 
  public:
-    constexpr explicit simple_parser(const std::u32string_view buf) noexcept
+    constexpr explicit SimpleLexer(const std::string_view buf) noexcept
       : input(buf)
        {}
 
-    template<std::predicate<const char32_t> CharPredicate =decltype(ascii::is_always_false<char32_t>)>
-    constexpr void skip_while(CharPredicate is =ascii::is<U'😊'>) noexcept
+    [[nodiscard]] constexpr std::size_t pos() const noexcept { return i; }
+    [[nodiscard]] constexpr bool got_data() const noexcept { return i<input.size(); }
+    [[maybe_unused]] constexpr bool get_next() noexcept
        {
-        while( i<input.size() and is(input[i]) ) ++i;
+        if( i<input.size() ) [[likely]]
+           {
+            return ++i<input.size();
+           }
+        return false; // 'i' points to one past next
+       }
+
+    template<std::predicate<const char> CharPredicate =decltype(ascii::is_always_false<char>)>
+    [[nodiscard]] constexpr bool got(CharPredicate is) const noexcept { return i<input.size() and is(input[i]); }
+
+    template<std::predicate<const char> CharPredicate =decltype(ascii::is_always_false<char>)>
+    constexpr void skip_while(CharPredicate is) noexcept
+       { while( got(is) and get_next() ); }
+
+    template<std::predicate<const char> CharPredicate =decltype(ascii::is_always_false<char>)>
+    [[nodiscard]] constexpr std::string_view get_while(CharPredicate is) noexcept
+       {
+        const std::size_t i_start = pos();
+        while( got(is) and get_next() );
+        return {input.data()+i_start, pos()-i_start};
        }
 };
 
-SimpleParser p(U"🤪  😎  abc123");
-p.skip_while( ascii::is_space_or_any_of<U'😊',U'🤪',U'😎'> );
+int main()
+{
+    SimpleLexer lexer(" len = 23 "sv);
+    lexer.skip_while( ascii::is_space );
+    const std::string_view var_nam = lexer.get_while(ascii::is_alnum);
+    lexer.skip_while( ascii::is_space );
+    if( lexer.got( ascii::is<'='>) ) lexer.get_next();
+    lexer.skip_while( ascii::is_space );
+    const std::string_view var_val = lexer.get_while(ascii::is_digit);
+    std::cout << var_nam << ' ' << var_val << '\n';
+}
+
 ```
 
-.
+🍕🍞🧀🍇🍌☕🍄🌿🌸🔥💥🌋🌊💧🔩🔦💡🔌
