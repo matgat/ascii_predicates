@@ -126,7 +126,7 @@ void query_char(const char ch)
 ```
 
 ---
-[overloads](https://gcc.godbolt.org/z/bafqoh6o4)
+[overloads](https://gcc.godbolt.org/z/bfxeq7441)
 
 ```cpp
 #include <iostream>
@@ -150,7 +150,7 @@ int main()
 ```
 
 ---
-[simple loop](https://gcc.godbolt.org/z/zMbf7raTb)
+[simple loop](https://gcc.godbolt.org/z/eKjco56v8)
 
 ```cpp
 #include <iostream>
