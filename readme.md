@@ -2,8 +2,9 @@
 [![linux-test](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml)
 [![ms-test](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml)
 
-A constexpr type safe replacement of `<cctype>` for c++,
-providing predicates valid for codepoints less than `0x80`.
+A single header c++ library that provides a constexpr type safe
+replacement of `<cctype>`, a set of predicates valid for codepoints
+less than `0x80`.
 
 [basic example](https://gcc.godbolt.org/z/W5sqd5K69)
 
@@ -20,8 +21,11 @@ int main()
 }
 ```
 
+### Overloads
 All the predicates can be called with either
 `char`, `unsigned char`, or `char32_t`.
+When calling the predicates with a `char32_t`, expect a `false`
+result for codepoints `>= 0x80`.
 What about the others? `char8_t` and `char16_t` are codeunits,
 it doesn't make sense to apply a predicate to them, must
 be combined to form a `char32_t` codepoint.
@@ -51,13 +55,20 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 |------------------------------|----------------------------------------|
 | `ascii::is_blank()`          | aka `std::isspace() and !='\n'`        |
 | `ascii::is_ident()`          | aka `std::isalnum() or =='_'`          |
-| `ascii::is_float()`          | aka `std::isalnum() or any of "+-.Ee"` |
+| `ascii::is_float()`          | aka `std::digit() or any of "+-.Ee"`   |
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
+
+I redefined `is_blank()` because its main use should be to detect
+any space remaining in the current line.
+I find that treating `\r` as a generic formatting space is a good
+tradeoff to deal with the various end-of-line conventions.
+
 
 
 ### Helper predicates
 Not strictly related to *ASCII*, provided for convenience
+(see `std::predicate` in examples below).
 
 |                                        |                                      |
 |----------------------------------------|--------------------------------------|
@@ -69,6 +80,8 @@ Not strictly related to *ASCII*, provided for convenience
 
 
 ### Composite predicates
+A non exhaustive collection of examples of how basic and
+helper predicates can be combined together.
 
 |                                        |
 |----------------------------------------|
@@ -78,6 +91,7 @@ Not strictly related to *ASCII*, provided for convenience
 | `ascii::is_punct_and_none_of<C,...>()` |
 
 
+
 ### Case conversion
 
 |                                 |
@@ -85,11 +99,11 @@ Not strictly related to *ASCII*, provided for convenience
 | `ascii::to_lower(const char c)` |
 | `ascii::to_upper(const char c)` |
 
-This is included for completeness but deceiving, so is provided
-just the `char` overload. Non very useful, since along with their
-corresponding predicates `ascii::is_lower()` and `ascii::is_upper()`
-are valid just for codepoints less than `0x80`.
-If you need to check and convert case safely use a unicode library.
+This is included for completeness but non very useful, since along with their
+corresponding predicates `ascii::is_lower()` and `ascii::is_upper()` are
+useful just for codepoints less than `0x80`.
+This is emphasized providing just the `char` overload.
+If you need to check and convert codepoints case, use a unicode library.
 
 
 ## Examples
