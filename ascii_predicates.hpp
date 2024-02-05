@@ -6,6 +6,7 @@
 //  ---------------------------------------------
 #include <concepts> // std::same_as<>
 #include <cstdint> // std::uint16_t
+//#include <limits> // std::numeric_limits
 
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -47,7 +48,7 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ISLOWER = 0b0000'0000'0000'0001 // std::islower
        ,ISUPPER = 0b0000'0000'0000'0010 // std::isupper
        ,ISSPACE = 0b0000'0000'0000'0100 // std::isspace
-       ,ISBLANK = 0b0000'0000'0000'1000 // std::isspace and not \n (not equiv to std::isblank)
+       ,ISBLANK = 0b0000'0000'0000'1000 // std::isspace and not '\n' (not equiv to std::isblank)
        ,ISALPHA = 0b0000'0000'0001'0000 // std::isalpha
        ,ISALNUM = 0b0000'0000'0010'0000 // std::isalnum
        ,ISDIGIT = 0b0000'0000'0100'0000 // std::isdigit
@@ -57,8 +58,8 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
        ,ISGRAPH = 0b0000'0100'0000'0000 // std::isgraph
        ,ISPRINT = 0b0000'1000'0000'0000 // std::isprint
        // Extended
-       ,ISIDENT = 0b0001'0000'0000'0000 // std::isalnum or _
-       ,ISFLOAT = 0b0010'0000'0000'0000 // std::isdigit or +-.Ee
+       ,ISIDENT = 0b0001'0000'0000'0000 // std::isalnum or '_'
+       ,ISFLOAT = 0b0010'0000'0000'0000 // std::isdigit or any of "+-.Ee"
        //,ISXXXXX = 0b0100'0000'0000'0000
        //,ISXXXXX = 0b1000'0000'0000'0000
        };

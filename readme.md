@@ -51,13 +51,13 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 |------------------------------|----------------------------------------|
 | `ascii::is_blank()`          | aka `std::isspace() and !='\n'`        |
 | `ascii::is_ident()`          | aka `std::isalnum() or =='_'`          |
-| `ascii::is_float()`          | aka `std::isalnum() or =='+,-,.,E,e'`  |
+| `ascii::is_float()`          | aka `std::isalnum() or any of "+-.Ee"` |
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
 
 
 ### Helper predicates
-Not strictly related to *ASCII*, useful
+Not strictly related to *ASCII*, provided for convenience
 
 |                                        |                                      |
 |----------------------------------------|--------------------------------------|
@@ -158,6 +158,34 @@ int main()
             ++i;
            }
     }
+}
+```
+
+
+---
+[std algorithm](https://gcc.godbolt.org/z/bjYfT5r41)
+
+```cpp
+#include <iostream>
+#include <ranges>
+#include <algorithm>
+#include <string_view>
+#include "ascii_predicates.hpp" // ascii::is_*
+
+int main()
+{
+    std::string_view str = "123 12a 456 d34";
+
+    auto tokens = str | std::views::split(' ')
+                      | std::views::transform([](auto range){ return std::string_view(&*range.begin(), std::ranges::distance(range));})
+                      | std::views::filter( [](auto s){ return !s.empty(); });
+    for(auto token : tokens)
+       {
+        if( std::ranges::all_of(token, [](const char c){ return ascii::is_digit(c); }) )
+           {
+            std::cout << "digits: " << token << '\n';
+           }
+       }
 }
 ```
 
