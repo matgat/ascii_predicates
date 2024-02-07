@@ -153,6 +153,18 @@ template<CharLike auto CH>
     return ch==CH;
    }
 
+template<CharLike auto CH1, decltype(CH1)... CHS>
+[[nodiscard]] constexpr bool is_any_of(const decltype(CH1) ch) noexcept
+   {
+    return ch==CH1 or ((ch==CHS) or ...);
+   }
+
+template<CharLike auto CH1, decltype(CH1)... CHS>
+[[nodiscard]] constexpr bool is_none_of(const decltype(CH1) ch) noexcept
+   {
+    return ch!=CH1 and ((ch!=CHS) and ...);
+   }
+
 //template<CharLike auto CH>
 //[[nodiscard]] constexpr bool is_greater_than(const decltype(CH) ch) noexcept
 //   {
@@ -170,18 +182,6 @@ template<CharLike auto CH>
 //   {
 //    return ch>=CH1 and ch<=CH2;
 //   }
-
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_any_of(const decltype(CH1) ch) noexcept
-   {
-    return ch==CH1 or ((ch==CHS) or ...);
-   }
-
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_none_of(const decltype(CH1) ch) noexcept
-   {
-    return ch!=CH1 and ((ch!=CHS) and ...);
-   }
 
 
 
