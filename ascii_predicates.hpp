@@ -13,8 +13,12 @@
 namespace ascii //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 {
 
-//----------------------------------------------------------------------------
-// Should be called is_probably_ascii() but it's too long
+// Supporting the following character types:
+template<typename T> concept CharLike = std::same_as<T, char> or
+                                        std::same_as<T, unsigned char> or
+                                        std::same_as<T, char32_t>;
+
+//---------------------------------------------------------------------------
 [[nodiscard]] constexpr bool is_ascii(const char32_t cp) noexcept
    {
     return cp<U'\x80';
@@ -30,7 +34,7 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     // | 9       | tab (\t)                  |  X  |     |     |  X  |  X  |     |     |     |     |     |     |      |
     // | 10–13   | whitespaces (\n,\v,\f,\r) |  X  |     |     |  X  |     |     |     |     |     |     |     |      |
     // | 14–31   | control codes             |  X  |     |     |     |     |     |     |     |     |     |     |      |
-    // | 32      | space                     |     |  X  |     |  X  |  X  |     |     |     |     |     |     |      |
+    // | 32      | space (' ')               |     |  X  |     |  X  |  X  |     |     |     |     |     |     |      |
     // | 33–47   | !"#$%&amp;'()*+,-./       |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
     // | 48–57   | 0123456789                |     |  X  |  X  |     |     |     |  X  |     |     |     |  X  |  X   |
     // | 58–64   | :;&lt;=&gt;?@             |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
@@ -45,142 +49,156 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     using mask_t = std::uint16_t;
     enum : mask_t
        {
-        ISLOWER = 0b0000'0000'0000'0001 // std::islower
-       ,ISUPPER = 0b0000'0000'0000'0010 // std::isupper
-       ,ISSPACE = 0b0000'0000'0000'0100 // std::isspace
-       ,ISBLANK = 0b0000'0000'0000'1000 // std::isspace and not '\n' (not equiv to std::isblank)
-       ,ISALPHA = 0b0000'0000'0001'0000 // std::isalpha
-       ,ISALNUM = 0b0000'0000'0010'0000 // std::isalnum
-       ,ISDIGIT = 0b0000'0000'0100'0000 // std::isdigit
-       ,ISXDIGI = 0b0000'0000'1000'0000 // std::isxdigit
-       ,ISPUNCT = 0b0000'0001'0000'0000 // std::ispunct
-       ,ISCNTRL = 0b0000'0010'0000'0000 // std::iscntrl
-       ,ISGRAPH = 0b0000'0100'0000'0000 // std::isgraph
-       ,ISPRINT = 0b0000'1000'0000'0000 // std::isprint
-       // Extended
-       ,ISIDENT = 0b0001'0000'0000'0000 // std::isalnum or '_'
-       ,ISFLOAT = 0b0010'0000'0000'0000 // std::isdigit or any of "+-.Ee"
-       //,ISXXXXX = 0b0100'0000'0000'0000
-       //,ISXXXXX = 0b1000'0000'0000'0000
+        VALMASK = 0b0000'0000'0000'1111 // Associated value
+        // Standard predicates
+       ,ISLOWER = 0b0000'0000'0001'0000 // std::islower
+       ,ISUPPER = 0b0000'0000'0010'0000 // std::isupper
+       ,ISSPACE = 0b0000'0000'0100'0000 // std::isspace
+       ,ISBLANK = 0b0000'0000'1000'0000 // std::isspace and not '\n' (not equiv to std::isblank)
+       ,ISALPHA = 0b0000'0001'0000'0000 // std::isalpha
+       ,ISDIGIT = 0b0000'0010'0000'0000 // std::isdigit
+       ,ISXDIGI = 0b0000'0100'0000'0000 // std::isxdigit
+       ,ISPUNCT = 0b0000'1000'0000'0000 // std::ispunct
+       ,ISCNTRL = 0b0001'0000'0000'0000 // std::iscntrl
+       ,ISPRINT = 0b0010'0000'0000'0000 // std::isprint
+       // Extended predicates
+       ,ISIDENT = 0b0100'0000'0000'0000 // std::isalnum or '_'
+       ,ISFLOAT = 0b1000'0000'0000'0000 // std::isdigit or any of "+-.Ee"
        };
 
-    static_assert( sizeof(unsigned char)==1 ); // Should really check CHAR_BIT?
-    static constexpr mask_t ascii_lookup_table[256] =
-      { 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x20C , 0x204 , 0x20C , 0x20C , 0x20C , 0x200 , 0x200 ,
-        0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 , 0x200 ,
-        0x80C , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0x2D00, 0xD00 , 0x2D00, 0x2D00, 0xD00 ,
-        0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0x3CE0, 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0xD00 ,
-        0xD00 , 0x1CB2, 0x1CB2, 0x1CB2, 0x1CB2, 0x3CB2, 0x1CB2, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32,
-        0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0x1C32, 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0x1D00,
-        0xD00 , 0x1CB1, 0x1CB1, 0x1CB1, 0x1CB1, 0x3CB1, 0x1CB1, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31,
-        0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0x1C31, 0xD00 , 0xD00 , 0xD00 , 0xD00 , 0x200 ,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0,
-        0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0   , 0x0 };
+    static_assert( sizeof(unsigned char)==1 ); // Should really check_mask CHAR_BIT?
+    //static_assert( std::numeric_limits<unsigned char>::max()+1 < masks_table.size() ); // <numeric_limits> and <array>
+    inline static constexpr mask_t masks_table[256] =
+       {0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x10C0, 0x1040, 0x10C0, 0x10C0, 0x10C0, 0x1000, 0x1000,
+        0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000,
+        0x20C0, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0xA800, 0x2800, 0xA800, 0xA800, 0x2800,
+        0xE600, 0xE601, 0xE602, 0xE603, 0xE604, 0xE605, 0xE606, 0xE607, 0xE608, 0xE609, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800,
+        0x2800, 0x652A, 0x652B, 0x652C, 0x652D, 0xE52E, 0x652F, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120,
+        0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x6120, 0x2800, 0x2800, 0x2800, 0x2800, 0x6800,
+        0x2800, 0x651A, 0x651B, 0x651C, 0x651D, 0xE51E, 0x651F, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110,
+        0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x6110, 0x2800, 0x2800, 0x2800, 0x2800, 0x1000,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,
+           0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0,    0x0 };
 
     //-----------------------------------------------------------------------
-    [[nodiscard]] inline constexpr bool check(const unsigned char ch, const mask_t mask) noexcept
+    template<CharLike Char>
+    [[nodiscard]] constexpr mask_t apply_mask(const Char c, const mask_t mask) noexcept
        {
-        // When a static constexpr variable can be inside a constexpr function, move the table here
-        //static_assert( std::numeric_limits<unsigned char>::max()+1 < ascii_lookup_table.size() ); // <numeric_limits> and <array>
-        return ascii_lookup_table[ch] & mask;
-       }
-    [[nodiscard]] inline constexpr bool check(const char ch, const mask_t mask) noexcept
-       {
-        return check(static_cast<unsigned char>(ch), mask);
-       }
-    [[nodiscard]] inline constexpr bool check(const char32_t cp, const mask_t mask) noexcept
-       {
-        // Good enough for parsing code where non ASCII codepoints are just in text or comments
-        if( ascii::is_ascii(cp) ) [[likely]]
+        if constexpr( std::same_as<Char, unsigned char> )
            {
-            return check(static_cast<unsigned char>(cp), mask);
+            return details::masks_table[c] & mask;
            }
-        return false;
+        else if constexpr( sizeof(Char)==sizeof(unsigned char) )
+           {
+            return details::masks_table[static_cast<unsigned char>(c)] & mask;
+           }
+        else
+           {
+            if( ascii::is_ascii(c) ) [[likely]]
+               {
+                return details::masks_table[static_cast<unsigned char>(c)] & mask;
+               }
+            return 0;
+           }
        }
 
+    //-----------------------------------------------------------------------
+    template<CharLike Char>
+    [[nodiscard]] inline constexpr bool check_any(const Char c, const mask_t mask) noexcept
+       {
+        return apply_mask(c, mask)!=0u;
+       }
+
+    //-----------------------------------------------------------------------
+    template<CharLike Char>
+    [[nodiscard]] inline constexpr bool check_all(const Char c, const mask_t mask) noexcept
+       {
+        return apply_mask(c, mask) == mask;
+       }
+
+
+    //-----------------------------------------------------------------------
     // Facility for case conversion
     template<bool SET>
-    [[nodiscard]] inline constexpr char set_case_bit(char c) noexcept
+    [[nodiscard]] inline constexpr char set_case_bit(char ch) noexcept
        {
-        static constexpr char case_bit = '\x20';
-        if constexpr (SET) c |= case_bit;
-        else               c &= ~case_bit;
-        return c;
+        // static constexpr char case_bit = '\x20'; // c++23 should allow static constexpr here
+        if constexpr( SET ) ch |=  '\x20';
+        else                ch &= ~'\x20'; // '\xDF'
+        return ch;
        }
+
 } //::::::::::::::::::::::::::::::: details ::::::::::::::::::::::::::::::::::
 
-// Supporting the following character types:
-template<typename T> concept CharLike = std::same_as<T, char> or
-                                        std::same_as<T, unsigned char> or
-                                        std::same_as<T, char32_t>;
+
 
 // Standard predicates
-template<CharLike Chr> [[nodiscard]] constexpr bool is_lower(const Chr c) noexcept { return details::check(c, details::ISLOWER); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_upper(const Chr c) noexcept { return details::check(c, details::ISUPPER); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_space(const Chr c) noexcept { return details::check(c, details::ISSPACE); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_alpha(const Chr c) noexcept { return details::check(c, details::ISALPHA); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_alnum(const Chr c) noexcept { return details::check(c, details::ISALNUM); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_digit(const Chr c) noexcept { return details::check(c, details::ISDIGIT); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_xdigi(const Chr c) noexcept { return details::check(c, details::ISXDIGI); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_punct(const Chr c) noexcept { return details::check(c, details::ISPUNCT); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_cntrl(const Chr c) noexcept { return details::check(c, details::ISCNTRL); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_graph(const Chr c) noexcept { return details::check(c, details::ISGRAPH); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_print(const Chr c) noexcept { return details::check(c, details::ISPRINT); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_lower(const Char c) noexcept { return details::check_any(c, details::ISLOWER); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_upper(const Char c) noexcept { return details::check_any(c, details::ISUPPER); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_space(const Char c) noexcept { return details::check_any(c, details::ISSPACE); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_alpha(const Char c) noexcept { return details::check_any(c, details::ISALPHA); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_alnum(const Char c) noexcept { return details::check_any(c, details::ISALPHA | details::ISDIGIT); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_digit(const Char c) noexcept { return details::check_any(c, details::ISDIGIT); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_xdigi(const Char c) noexcept { return details::check_any(c, details::ISXDIGI); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_punct(const Char c) noexcept { return details::check_any(c, details::ISPUNCT); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_cntrl(const Char c) noexcept { return details::check_any(c, details::ISCNTRL); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_graph(const Char c) noexcept { return details::apply_mask(c, details::ISPRINT | details::ISBLANK) == details::ISPRINT; }
+template<CharLike Char> [[nodiscard]] constexpr bool is_print(const Char c) noexcept { return details::check_any(c, details::ISPRINT); }
 // Non standard ones
-template<CharLike Chr> [[nodiscard]] constexpr bool is_blank(const Chr c) noexcept { return details::check(c, details::ISBLANK); } // not equiv to std::isblank
-template<CharLike Chr> [[nodiscard]] constexpr bool is_ident(const Chr c) noexcept { return details::check(c, details::ISIDENT); } // std::isalnum or _
-template<CharLike Chr> [[nodiscard]] constexpr bool is_float(const Chr c) noexcept { return details::check(c, details::ISFLOAT); } // std::isdigit or +,-,.,E,e
-template<CharLike Chr> [[nodiscard]] constexpr bool is_space_or_punct(const Chr c) noexcept { return details::check(c, details::ISSPACE | details::ISPUNCT); }
-template<CharLike Chr> [[nodiscard]] constexpr bool is_endline(const Chr c) noexcept { return c==static_cast<Chr>('\n'); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_blank(const Char c) noexcept { return details::check_any(c, details::ISBLANK); } // not equiv to std::isblank
+template<CharLike Char> [[nodiscard]] constexpr bool is_ident(const Char c) noexcept { return details::check_any(c, details::ISIDENT); } // std::isalnum or _
+template<CharLike Char> [[nodiscard]] constexpr bool is_float(const Char c) noexcept { return details::check_any(c, details::ISFLOAT); } // std::isdigit or any of "+-.Ee"
+template<CharLike Char> [[nodiscard]] constexpr bool is_space_or_punct(const Char c) noexcept { return details::check_any(c, details::ISSPACE | details::ISPUNCT); }
+template<CharLike Char> [[nodiscard]] constexpr bool is_endline(const Char c) noexcept { return c==static_cast<Char>('\n'); }
 
 
 //---------------------------------------------------------------------------
 // Helper predicates (not strictly ASCII related)
-template<CharLike Chr> [[nodiscard]] constexpr bool is_always_false(const Chr) noexcept
+template<CharLike Char> [[nodiscard]] constexpr bool is_always_false(const Char) noexcept
    {
     return false;
    }
 
-template<CharLike auto CH>
-[[nodiscard]] constexpr bool is(const decltype(CH) ch) noexcept
+template<CharLike auto C>
+[[nodiscard]] constexpr bool is(const decltype(C) c) noexcept
    {
-    return ch==CH;
+    return c==C;
    }
 
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_any_of(const decltype(CH1) ch) noexcept
+template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_any_of(const decltype(C1) c) noexcept
    {
-    return ch==CH1 or ((ch==CHS) or ...);
+    return c==C1 or ((c==CS) or ...);
    }
 
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_none_of(const decltype(CH1) ch) noexcept
+template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_none_of(const decltype(C1) c) noexcept
    {
-    return ch!=CH1 and ((ch!=CHS) and ...);
+    return c!=C1 and ((c!=CS) and ...);
    }
 
-//template<CharLike auto CH>
-//[[nodiscard]] constexpr bool is_greater_than(const decltype(CH) ch) noexcept
+//template<CharLike auto C>
+//[[nodiscard]] constexpr bool is_greater_than(const decltype(C) c) noexcept
 //   {
-//    return ch>CH;
+//    return c>C;
 //   }
 
-//template<CharLike auto CH>
-//[[nodiscard]] constexpr bool is_less_than(const decltype(CH) ch) noexcept
+//template<CharLike auto C>
+//[[nodiscard]] constexpr bool is_less_than(const decltype(C) c) noexcept
 //   {
-//    return ch<CH;
+//    return c<C;
 //   }
 
-//template<CharLike auto CH1, CharLike auto CH2>
-//[[nodiscard]] constexpr bool is_between(const decltype(CH) ch) noexcept
+//template<CharLike auto C1, CharLike auto C2>
+//[[nodiscard]] constexpr bool is_between(const decltype(C) c) noexcept
 //   {
-//    return ch>=CH1 and ch<=CH2;
+//    return c>=C1 and c<=C2;
 //   }
 
 
@@ -188,36 +206,47 @@ template<CharLike auto CH1, decltype(CH1)... CHS>
 //---------------------------------------------------------------------------
 // Some examples of non-type parameterized template composite predicates
 
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_space_or_any_of(const decltype(CH1) ch) noexcept
+template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_space_or_any_of(const decltype(C1) c) noexcept
    {
-    return is_space(ch) or is_any_of<CH1, CHS ...>(ch);
+    return is_space(c) or is_any_of<C1, CS ...>(c);
    }
 
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_alnum_or_any_of(const decltype(CH1) ch) noexcept
+template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_alnum_or_any_of(const decltype(C1) c) noexcept
    {
-    return is_alnum(ch) or is_any_of<CH1, CHS ...>(ch);
+    return is_alnum(c) or is_any_of<C1, CS ...>(c);
    }
 
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_digit_or_any_of(const decltype(CH1) ch) noexcept
+template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_digit_or_any_of(const decltype(C1) c) noexcept
    {
-    return is_digit(ch) or is_any_of<CH1, CHS ...>(ch);
+    return is_digit(c) or is_any_of<C1, CS ...>(c);
    }
 
-template<CharLike auto CH1, decltype(CH1)... CHS>
-[[nodiscard]] constexpr bool is_punct_and_none_of(const decltype(CH1) ch) noexcept
+template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_punct_and_none_of(const decltype(C1) c) noexcept
    {
-    return is_punct(ch) and is_none_of<CH1, CHS ...>(ch);
+    return is_punct(c) and is_none_of<C1, CS ...>(c);
    }
 
 
 
 //---------------------------------------------------------------------------
 // Case conversion (only for ASCII char, so not so useful!)
-[[nodiscard]] constexpr char to_lower(char c) noexcept { if(is_upper(c)) c = details::set_case_bit<true>(c); return c; }
-[[nodiscard]] constexpr char to_upper(char c) noexcept { if(is_lower(c)) c = details::set_case_bit<false>(c); return c; }
+[[nodiscard]] constexpr char to_lower(char ch) noexcept { if(is_upper(ch)) ch = details::set_case_bit<true>(ch); return ch; }
+[[nodiscard]] constexpr char to_upper(char ch) noexcept { if(is_lower(ch)) ch = details::set_case_bit<false>(ch); return ch; }
+
+
+
+//---------------------------------------------------------------------------
+template<CharLike Char>
+[[nodiscard]] constexpr std::uint8_t value_of_digit(const Char c) noexcept
+{
+    // Using `std::uint8_t` because is the easiest to promote to other integrals
+    return static_cast<std::uint8_t>( apply_mask(c, details::VALMASK) );
+}
+
 
 }//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -226,11 +255,62 @@ template<CharLike auto CH1, decltype(CH1)... CHS>
 /////////////////////////////////////////////////////////////////////////////
 #ifdef TEST_UNITS ///////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
+#include <cctype>
+/////////////////////////////////////////////////////////////////////////////
 static ut::suite<"MG::ascii_predicates"> ascii_predicates_tests = []
 {////////////////////////////////////////////////////////////////////////////
 
+static_assert( ascii::is_alnum('a') );
+static_assert( not ascii::is_digit(U'⛵') );
+static_assert( ascii::value_of_digit('3') == 3 );
+static_assert( ascii::to_lower('A') == 'a' );
+
+// Compatibility with standard predicates, but just in ASCII range
+for( unsigned char ch=0; ch<0x80u; ++ch )
+   {
+    ut::test( std::to_string(ch) ) = [ch] //
+       {
+        //ut::log << fmt::format("standard predicates on '\\x{:X}'\n",ch);
+
+        //ut::expect( ut::that % ascii::is_blank(ch) == (std::isblank(ch)!=0) ); // mine's not standard
+        ut::expect( ut::that % ascii::is_alnum(ch) == (std::isalnum(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_alpha(ch) == (std::isalpha(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_cntrl(ch) == (std::iscntrl(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_digit(ch) == (std::isdigit(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_graph(ch) == (std::isgraph(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_print(ch) == (std::isprint(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_punct(ch) == (std::ispunct(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_space(ch) == (std::isspace(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_xdigi(ch) == (std::isxdigit(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_lower(ch) == (std::islower(ch)!=0) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % ascii::is_upper(ch) == (std::isupper(ch)!=0) ) << "(char '" << ch << "')\n";
+
+        ut::expect( ut::that % static_cast<int>(ascii::to_lower(ch)) == std::tolower(ch) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % static_cast<int>(ascii::to_upper(ch)) == std::toupper(ch) ) << "(char '" << ch << "')\n";
+       };
+   }
+
 ut::test("basic predicates") = []
    {
+    ut::expect( ut::that % not ascii::is_lower('\1') );
+    ut::expect( ut::that % not ascii::is_upper('\1') );
+    ut::expect( ut::that % not ascii::is_space('\1') );
+    ut::expect( ut::that % not ascii::is_blank('\1') );
+    ut::expect( ut::that % not ascii::is_endline('\1') );
+    ut::expect( ut::that % not ascii::is_alpha('\1') );
+    ut::expect( ut::that % not ascii::is_alnum('\1') );
+    ut::expect( ut::that % not ascii::is_digit('\1') );
+    ut::expect( ut::that % not ascii::is_xdigi('\1') );
+    ut::expect( ut::that % not ascii::is_punct('\1') );
+    ut::expect( ut::that % ascii::is_cntrl('\1') );
+    ut::expect( ut::that % not ascii::is_graph('\1') );
+    ut::expect( ut::that % not ascii::is_print('\1') );
+    ut::expect( ut::that % not ascii::is_ident('\1') );
+    ut::expect( ut::that % not ascii::is_float('\1') );
+    ut::expect( ut::that % not ascii::is_space_or_punct('\1') );
+
+    ut::expect( ut::that % ascii::is_lower('a') );
+    ut::expect( ut::that % not ascii::is_upper('a') );
     ut::expect( ut::that % not ascii::is_space('a') );
     ut::expect( ut::that % not ascii::is_blank('a') );
     ut::expect( ut::that % not ascii::is_endline('a') );
@@ -246,6 +326,8 @@ ut::test("basic predicates") = []
     ut::expect( ut::that % not ascii::is_float('a') );
     ut::expect( ut::that % not ascii::is_space_or_punct('a') );
 
+    ut::expect( ut::that % not ascii::is_lower('2') );
+    ut::expect( ut::that % not ascii::is_upper('2') );
     ut::expect( ut::that % not ascii::is_space('2') );
     ut::expect( ut::that % not ascii::is_blank('2') );
     ut::expect( ut::that % not ascii::is_endline('2') );
@@ -261,6 +343,8 @@ ut::test("basic predicates") = []
     ut::expect( ut::that % ascii::is_float('2') );
     ut::expect( ut::that % not ascii::is_space_or_punct('2') );
 
+    ut::expect( ut::that % not ascii::is_lower('\t') );
+    ut::expect( ut::that % not ascii::is_upper('\t') );
     ut::expect( ut::that % ascii::is_space('\t') );
     ut::expect( ut::that % ascii::is_blank('\t') );
     ut::expect( ut::that % not ascii::is_endline('\t') );
@@ -276,6 +360,8 @@ ut::test("basic predicates") = []
     ut::expect( ut::that % not ascii::is_float('\t') );
     ut::expect( ut::that % ascii::is_space_or_punct('\t') );
 
+    ut::expect( ut::that % not ascii::is_lower('\n') );
+    ut::expect( ut::that % not ascii::is_upper('\n') );
     ut::expect( ut::that % ascii::is_space('\n') );
     ut::expect( ut::that % not ascii::is_blank('\n') );
     ut::expect( ut::that % ascii::is_endline('\n') );
@@ -291,6 +377,8 @@ ut::test("basic predicates") = []
     ut::expect( ut::that % not ascii::is_float('\n') );
     ut::expect( ut::that % ascii::is_space_or_punct('\n') );
 
+    ut::expect( ut::that % not ascii::is_lower(';') );
+    ut::expect( ut::that % not ascii::is_upper(';') );
     ut::expect( ut::that % not ascii::is_space(';') );
     ut::expect( ut::that % not ascii::is_blank(';') );
     ut::expect( ut::that % not ascii::is_endline(';') );
@@ -306,6 +394,8 @@ ut::test("basic predicates") = []
     ut::expect( ut::that % not ascii::is_float(';') );
     ut::expect( ut::that % ascii::is_space_or_punct(';') );
 
+    ut::expect( ut::that % not ascii::is_lower('\xE0') );
+    ut::expect( ut::that % not ascii::is_upper('\xE0') );
     ut::expect( ut::that % not ascii::is_space('\xE0') );
     ut::expect( ut::that % not ascii::is_blank('\xE0') );
     ut::expect( ut::that % not ascii::is_endline('\xE0') );
@@ -321,6 +411,8 @@ ut::test("basic predicates") = []
     ut::expect( ut::that % not ascii::is_float('\xE0') );
     ut::expect( ut::that % not ascii::is_space_or_punct('\xE0') );
 
+    ut::expect( ut::that % not ascii::is_lower(U'🍌') );
+    ut::expect( ut::that % not ascii::is_upper(U'🍌') );
     ut::expect( ut::that % not ascii::is_space(U'🍌') );
     ut::expect( ut::that % not ascii::is_blank(U'🍌') );
     ut::expect( ut::that % not ascii::is_endline(U'🍌') );
@@ -661,14 +753,53 @@ ut::test("case conversion") = []
     ut::expect( ut::that % ascii::to_upper('~') == '~');
    };
 
+ut::test("value_of_digit()") = []
+   {
+    ut::expect( ut::that % ascii::value_of_digit('0') == 0u);
+    ut::expect( ut::that % ascii::value_of_digit('1') == 1u);
+    ut::expect( ut::that % ascii::value_of_digit('2') == 2u);
+    ut::expect( ut::that % ascii::value_of_digit('3') == 3u);
+    ut::expect( ut::that % ascii::value_of_digit('4') == 4u);
+    ut::expect( ut::that % ascii::value_of_digit('5') == 5u);
+    ut::expect( ut::that % ascii::value_of_digit('6') == 6u);
+    ut::expect( ut::that % ascii::value_of_digit('7') == 7u);
+    ut::expect( ut::that % ascii::value_of_digit('8') == 8u);
+    ut::expect( ut::that % ascii::value_of_digit('9') == 9u);
+    ut::expect( ut::that % ascii::value_of_digit('A') == 0xAu);
+    ut::expect( ut::that % ascii::value_of_digit('B') == 0xBu);
+    ut::expect( ut::that % ascii::value_of_digit('C') == 0xCu);
+    ut::expect( ut::that % ascii::value_of_digit('D') == 0xDu);
+    ut::expect( ut::that % ascii::value_of_digit('E') == 0xEu);
+    ut::expect( ut::that % ascii::value_of_digit('F') == 0xFu);
+    ut::expect( ut::that % ascii::value_of_digit('z') == 0u);
+
+    ut::expect( ut::that % ascii::value_of_digit(U'0') == 0u);
+    ut::expect( ut::that % ascii::value_of_digit(U'1') == 1u);
+    ut::expect( ut::that % ascii::value_of_digit(U'2') == 2u);
+    ut::expect( ut::that % ascii::value_of_digit(U'3') == 3u);
+    ut::expect( ut::that % ascii::value_of_digit(U'4') == 4u);
+    ut::expect( ut::that % ascii::value_of_digit(U'5') == 5u);
+    ut::expect( ut::that % ascii::value_of_digit(U'6') == 6u);
+    ut::expect( ut::that % ascii::value_of_digit(U'7') == 7u);
+    ut::expect( ut::that % ascii::value_of_digit(U'8') == 8u);
+    ut::expect( ut::that % ascii::value_of_digit(U'9') == 9u);
+    ut::expect( ut::that % ascii::value_of_digit(U'A') == 0xAu);
+    ut::expect( ut::that % ascii::value_of_digit(U'B') == 0xBu);
+    ut::expect( ut::that % ascii::value_of_digit(U'C') == 0xCu);
+    ut::expect( ut::that % ascii::value_of_digit(U'D') == 0xDu);
+    ut::expect( ut::that % ascii::value_of_digit(U'E') == 0xEu);
+    ut::expect( ut::that % ascii::value_of_digit(U'F') == 0xFu);
+    ut::expect( ut::that % ascii::value_of_digit(U'z') == 0u);
+    ut::expect( ut::that % ascii::value_of_digit(U'🍄') == 0u);
+   };
 
 };///////////////////////////////////////////////////////////////////////////
 #endif // TEST_UNITS ////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Lookup table generation:
-// https://gcc.godbolt.org/z/6ds8faf3Y
+// Lookup tables generation:
+// https://gcc.godbolt.org/z/Gna45Esjc
 //#include <iostream>
 //#include <iomanip>
 //#include <array>
@@ -677,77 +808,39 @@ ut::test("case conversion") = []
 //#include <cstdint>
 //
 //static_assert( sizeof(unsigned char)==1 );
-//using mask_t = std::uint16_t;
 //
-//struct LookupTableGenerator
+//template<typename T>
+//struct AsciiTableGenerator
 //{
-//    std::array<mask_t,256> lookup_table;
+//    using elem_t = T;
+//    std::array<elem_t,256> table;
 //
-//    LookupTableGenerator()
+//    const AsciiTableGenerator<T>& generate()
 //       {
-//
-//        for(std::size_t i=0; i<lookup_table.size(); ++i)
+//        for(std::size_t i=0; i<table.size(); ++i)
 //           {
-//            lookup_table[i] = generate_mask_for(static_cast<unsigned char>(i));
+//            table[i] = generate_element_for(static_cast<unsigned char>(i));
+//           }
+//        return *this;
+//       }
+//
+//    virtual elem_t generate_element_for(unsigned char c) =0;
+//
+//    void list_elements() const
+//       {
+//        for(std::size_t i=0; i<table.size(); ++i)
+//           {
+//            std::cout << std::hex << "\\x" << i << " (" << char(i) << ") 0x" << table[i] << '\n';
 //           }
 //       }
 //
-//    static mask_t generate_mask_for(unsigned char c)
+//    void print_array() const
 //       {
-//        enum : mask_t
-//           {
-//            ISLOWER = 0b0000'0000'0000'0001 // std::islower
-//           ,ISUPPER = 0b0000'0000'0000'0010 // std::isupper
-//           ,ISSPACE = 0b0000'0000'0000'0100 // std::isspace
-//           ,ISBLANK = 0b0000'0000'0000'1000 // std::isspace and not \n (not equiv to std::isblank)
-//           ,ISALPHA = 0b0000'0000'0001'0000 // std::isalpha
-//           ,ISALNUM = 0b0000'0000'0010'0000 // std::isalnum
-//           ,ISDIGIT = 0b0000'0000'0100'0000 // std::isdigit
-//           ,ISXDIGI = 0b0000'0000'1000'0000 // std::isxdigit
-//           ,ISPUNCT = 0b0000'0001'0000'0000 // std::ispunct
-//           ,ISCNTRL = 0b0000'0010'0000'0000 // std::iscntrl
-//           ,ISGRAPH = 0b0000'0100'0000'0000 // std::isgraph
-//           ,ISPRINT = 0b0000'1000'0000'0000 // std::isprint
-//           // Extended
-//           ,ISIDENT = 0b0001'0000'0000'0000 // std::isalnum or _
-//           ,ISFLOAT = 0b0010'0000'0000'0000 // std::isdigit or +,-,.,E,e
-//           //,ISXXXXX = 0b0100'0000'0000'0000
-//           //,ISXXXXX = 0b1000'0000'0000'0000
-//           };
-//
-//        mask_t mask = 0;
-//        if( std::islower(c) )  mask |= ISLOWER;
-//        if( std::isupper(c) )  mask |= ISUPPER;
-//        if( std::isspace(c) )  mask |= ISSPACE;
-//        if( std::isspace(c) and c!='\n' ) mask |= ISBLANK; // std::isblank(c)
-//        if( std::isalpha(c) )  mask |= ISALPHA;
-//        if( std::isalnum(c) )  mask |= ISALNUM;
-//        if( std::isdigit(c) )  mask |= ISDIGIT;
-//        if( std::isxdigit(c) ) mask |= ISXDIGI;
-//        if( std::ispunct(c) )  mask |= ISPUNCT;
-//        if( std::iscntrl(c) )  mask |= ISCNTRL;
-//        if( std::isgraph(c) )  mask |= ISGRAPH;
-//        if( std::isprint(c) )  mask |= ISPRINT;
-//        if( std::isalnum(c) or c=='_' ) mask |= ISIDENT;
-//        if( std::isdigit(c) or c=='+' or c=='-' or c=='.' or c=='E' or c=='e' ) mask |= ISFLOAT;
-//        return mask;
-//       }
-//
-//    void print_table()
-//       {
-//        for(std::size_t i=0; i<lookup_table.size(); ++i)
-//           {
-//            std::cout << std::hex << "\\x" << i << " (" << char(i) << ") 0x" << lookup_table[i] << '\n';
-//           }
-//       }
-//
-//    void print_array()
-//       {
-//        std::cout << "static constexpr mask_t ascii_lookup_table[256] = \n";
+//        std::cout << "static constexpr elem_t table[256] = \n";
 //        std::cout << std::left << '{';
-//        for(std::size_t i=0; i<lookup_table.size(); ++i)
+//        for(std::size_t i=0; i<table.size(); ++i)
 //           {
-//            std::cout << std::setw(6) << std::format("0x{:X}",lookup_table[i]) << ", ";
+//            std::cout << std::setfill(' ') << std::setw(6) << std::right << std::format("0x{:X}",table[i]) << ", ";
 //            if((i+1)%16 == 0)
 //               {
 //                if(i!=255) std::cout << '\n';
@@ -757,9 +850,58 @@ ut::test("case conversion") = []
 //       }
 //};
 //
+//struct PredMasksAndValuesGenerator : AsciiTableGenerator<std::uint16_t>
+//{
+//    AsciiTableGenerator::elem_t generate_element_for(unsigned char c) override
+//       {
+//        enum : AsciiTableGenerator::elem_t
+//           {
+//            VALMASK = 0b0000'0000'0000'1111 // Associated value
+//            // Standard predicates
+//           ,ISLOWER = 0b0000'0000'0001'0000 // std::islower
+//           ,ISUPPER = 0b0000'0000'0010'0000 // std::isupper
+//           ,ISSPACE = 0b0000'0000'0100'0000 // std::isspace
+//           ,ISBLANK = 0b0000'0000'1000'0000 // std::isspace and not '\n' (not equiv to std::isblank)
+//           ,ISALPHA = 0b0000'0001'0000'0000 // std::isalpha
+//           ,ISDIGIT = 0b0000'0010'0000'0000 // std::isdigit
+//           ,ISXDIGI = 0b0000'0100'0000'0000 // std::isxdigit
+//           ,ISPUNCT = 0b0000'1000'0000'0000 // std::ispunct
+//           ,ISCNTRL = 0b0001'0000'0000'0000 // std::iscntrl
+//           ,ISPRINT = 0b0010'0000'0000'0000 // std::isprint
+//           // Extended predicates
+//           ,ISIDENT = 0b0100'0000'0000'0000 // std::isalnum or '_'
+//           ,ISFLOAT = 0b1000'0000'0000'0000 // std::isdigit or any of "+-.Ee"
+//           };
+//
+//        AsciiTableGenerator::elem_t mask = 0;
+//        // Associated value
+//        mask = dig_value_of(c) & VALMASK;
+//        // Predicates
+//        if( std::islower(c) )  mask |= ISLOWER;
+//        if( std::isupper(c) )  mask |= ISUPPER;
+//        if( std::isspace(c) )  mask |= ISSPACE;
+//        if( std::isspace(c) and c!='\n' ) mask |= ISBLANK; // std::isblank(c)
+//        if( std::isalpha(c) )  mask |= ISALPHA;
+//        if( std::isdigit(c) )  mask |= ISDIGIT;
+//        if( std::isxdigit(c) ) mask |= ISXDIGI;
+//        if( std::ispunct(c) )  mask |= ISPUNCT;
+//        if( std::iscntrl(c) )  mask |= ISCNTRL;
+//        if( std::isprint(c) )  mask |= ISPRINT;
+//        // Extended predicates
+//        if( std::isalnum(c) or c=='_' ) mask |= ISIDENT;
+//        if( std::isdigit(c) or c=='+' or c=='-' or c=='.' or c=='E' or c=='e' ) mask |= ISFLOAT;
+//        return mask;
+//       }
+//
+//    AsciiTableGenerator::elem_t dig_value_of(unsigned char c)
+//       {
+//        if( std::isdigit(c) )  return c-'0';
+//        else if( std::isxdigit(c) ) return 0xA + c - (std::islower(c) ? 'a' : 'A');
+//        return 0;
+//       }
+//};
+//
 //int main()
 //{
-//    LookupTableGenerator tbl;
-//    //tbl.print_table();
-//    tbl.print_array();
+//    PredMasksAndValuesGenerator().generate().print_array();
 //}
