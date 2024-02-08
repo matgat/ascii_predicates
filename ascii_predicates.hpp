@@ -6,7 +6,7 @@
 //  ---------------------------------------------
 #include <concepts> // std::same_as<>
 #include <cstdint> // std::uint16_t
-//#include <limits> // std::numeric_limits
+#include <limits> // std::numeric_limits
 
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -66,9 +66,9 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
        ,ISFLOAT = 0b1000'0000'0000'0000 // std::isdigit or any of "+-.Ee"
        };
 
-    static_assert( sizeof(unsigned char)==1 ); // Should really check_mask CHAR_BIT?
-    //static_assert( std::numeric_limits<unsigned char>::max()+1 < masks_table.size() ); // <numeric_limits> and <array>
-    inline static constexpr mask_t masks_table[256] =
+    static_assert( sizeof(unsigned char)==1 );
+    static_assert( std::numeric_limits<unsigned char>::digits==8u );
+    inline static constexpr mask_t masks_table[1u+std::numeric_limits<unsigned char>::max()] =
        {0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x10C0, 0x1040, 0x10C0, 0x10C0, 0x10C0, 0x1000, 0x1000,
         0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000,
         0x20C0, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0x2800, 0xA800, 0x2800, 0xA800, 0xA800, 0x2800,
@@ -268,7 +268,7 @@ static_assert( ascii::to_lower('A') == 'a' );
 // Compatibility with standard predicates, but just in ASCII range
 for( unsigned char ch=0; ch<0x80u; ++ch )
    {
-    ut::test( std::to_string(ch) ) = [ch] //
+    ut::test( std::to_string(static_cast<int>(ch)) ) = [ch]
        {
         //ut::log << fmt::format("standard predicates on '\\x{:X}'\n",ch);
 
@@ -285,8 +285,8 @@ for( unsigned char ch=0; ch<0x80u; ++ch )
         ut::expect( ut::that % ascii::is_lower(ch) == (std::islower(ch)!=0) ) << "(char '" << ch << "')\n";
         ut::expect( ut::that % ascii::is_upper(ch) == (std::isupper(ch)!=0) ) << "(char '" << ch << "')\n";
 
-        ut::expect( ut::that % static_cast<int>(ascii::to_lower(ch)) == std::tolower(ch) ) << "(char '" << ch << "')\n";
-        ut::expect( ut::that % static_cast<int>(ascii::to_upper(ch)) == std::toupper(ch) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % static_cast<int>(ascii::to_lower(static_cast<char>(ch))) == std::tolower(ch) ) << "(char '" << ch << "')\n";
+        ut::expect( ut::that % static_cast<int>(ascii::to_upper(static_cast<char>(ch))) == std::toupper(ch) ) << "(char '" << ch << "')\n";
        };
    }
 
