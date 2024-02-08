@@ -28,6 +28,13 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 * Generally expect a `false` result for codepoints `>= 0x80`.
 
 
+
+#Build
+Uses concepts, so you need a *c++20* compliant compiler indicating
+at least `-std=c++20` (`/std:c++20` in case of *msvc*).
+
+
+
 ### Standard predicates
 
 |                     |                       |
