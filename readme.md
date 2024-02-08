@@ -24,14 +24,14 @@ What about the others? `char8_t` and `char16_t` are codeunits,
 it doesn't make sense to apply a predicate to them, must
 be combined to form a `char32_t` codepoint.
 Regarding `wchar_t`, leave it in the dark ages where belongs.
-* ❗ Since this library is decontaminated from locales or codepages, the compatibility with `<cctype>` is ensured just for pure *ASCII* characters
+* ❗Since this library is decontaminated from locales or codepages, the compatibility with `<cctype>` is ensured just for pure *ASCII* characters
 * Generally expect a `false` result for codepoints `>= 0x80`.
 
 
 
-#Build
-Uses concepts, so you need a *c++20* compliant compiler indicating
-at least `-std=c++20` (`/std:c++20` in case of *msvc*).
+### Build
+This library uses concepts, so you need a *c++20* compliant compiler
+indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 
 
 
@@ -51,8 +51,6 @@ at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_graph()` | aka `std::isgraph()`  |
 | `ascii::is_print()` | aka `std::isprint()`  |
 
-* ❗ `ascii::is_lower()` and `ascii::is_upper()` are the easiest to misuse
-
 
 
 ### Non-standard predicates
@@ -65,8 +63,8 @@ at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
 
-I redefined `is_blank()` to include all spaces except `\n` to enable
-it to detect any spaces in the current line.
+I redefined `is_blank()` to include all spaces except `\n` to ease
+the detection of any spaces in the current line.
 I find that treating `\r` as a generic formatting space is a good
 tradeoff to deal with the various end-of-line conventions.
 
@@ -113,10 +111,10 @@ If you need to check and convert codepoints case, use a unicode library.
 
 ### Number conversion
 As convenience for hand-made number conversion (see `std::from_chars()`),
-is provided a function `value_of_digit()` that returns a non null
-integral for `is_digit()` or `is_xdigi()` characters.
-The returned integral type is `std::uint8_t`, the easiest to promote to
-other integrals types.
+`value_of_digit(ch)` is a function that returns a non null integral
+for `is_xdigi()`/`is_digit()` characters.
+The returned type is `std::uint8_t`, the easiest to promote
+to other integral types.
 
 ```cpp
 static_assert( ascii::value_of_digit('4') == 4 );
