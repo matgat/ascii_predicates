@@ -6,7 +6,7 @@
 //  ---------------------------------------------
 #include <concepts> // std::same_as<>
 #include <cstdint> // std::uint16_t
-#include <limits> // std::numeric_limits
+#include <limits> // std::numeric_limits<>
 
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
