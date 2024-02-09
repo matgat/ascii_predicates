@@ -24,8 +24,8 @@ What about the others? `char8_t` and `char16_t` are codeunits,
 it doesn't make sense to apply a predicate to them, must
 be combined to form a `char32_t` codepoint.
 Regarding `wchar_t`, leave it in the dark ages where belongs.
-* ❗Since this library is decontaminated from locales or codepages, the compatibility with `<cctype>` is ensured just for pure *ASCII* characters
-* Generally expect a `false` result for codepoints `>= 0x80`.
+* ❗Since this library is decontaminated from *locales* or *codepages*, the compatibility with `<cctype>` is ensured just for pure *ASCII* characters
+* Generally expect `false` results for codepoints `>= 0x80`.
 
 
 
@@ -63,7 +63,7 @@ indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
 
-I redefined `is_blank()` to include all spaces except `\n` to ease
+`is_blank()` is redefined to include all spaces except `\n` to ease
 the detection of any spaces in the current line.
 I find that treating `\r` as a generic formatting space is a good
 tradeoff to deal with the various end-of-line conventions.
@@ -103,16 +103,17 @@ helper predicates can be combined together.
 | `ascii::to_lower(const char c)` |
 | `ascii::to_upper(const char c)` |
 
-This is included for completeness but since gives meaningful results just
-for codepoints less than `0x80`, is provided just the `char` overload.
+Case conversion is included for completeness but since gives meaningful
+results just for codepoints less than `0x80`, it has little practical value.
+To avoid abuse is provided just the `char` overload.
 If you need to check and convert codepoints case, use a unicode library.
 
 
 
 ### Number conversion
-As convenience for hand-made number conversion (see `std::from_chars()`),
-`value_of_digit(ch)` is a function that returns a non null integral
-for `is_xdigi()`/`is_digit()` characters.
+As convenience for number literal parsing there's a function
+`value_of_digit(ch)` that returns the corresponding value of
+`is_xdigi()`/`is_digit()` characters.
 The returned type is `std::uint8_t`, the easiest to promote
 to other integral types.
 
