@@ -284,4 +284,71 @@ int main()
 
 ```
 
+---
+[parsing number literal](https://gcc.godbolt.org/z/h7q8rjz7P)
+
+```cpp
+#include <iostream>
+#include <format>
+#include <string_view>
+#include <stdexcept>
+#include <concepts>
+#include <limits>
+#include "ascii_predicates.hpp" // ascii::is_*
+
+class SimpleParser
+{
+ public:
+    const std::string_view input;
+ private:
+    std::size_t i = 0;
+
+ public:
+    constexpr explicit SimpleParser(const std::string_view buf) noexcept
+      : input(buf)
+       {}
+
+    [[nodiscard]] constexpr bool got_digit() const noexcept { return i<input.size() and ascii::is_digit(input[i]); }
+    [[nodiscard]] constexpr char curr_codepoint() const noexcept { return i<input.size() ? input[i] : '\0'; }
+    [[maybe_unused]] constexpr bool get_next() noexcept
+       {
+        if( i<input.size() ) [[likely]]
+           {
+            return ++i<input.size();
+           }
+        return false;
+       }
+
+    template<std::unsigned_integral Uint>
+    [[nodiscard]] constexpr Uint extract_index()
+       {
+        if( not got_digit() )
+           {
+            throw std::runtime_error( std::format("Invalid char '{}' in number literal", curr_codepoint()) );
+           }
+    
+        Uint result = ascii::value_of_digit(curr_codepoint());
+        constexpr Uint base = 10u;
+        constexpr Uint overflow_limit = ((std::numeric_limits<Uint>::max() - (base - 1u)) / (base)) - 1u;
+        while( get_next() and got_digit() )
+           {
+            if( result>overflow_limit )
+               {
+                throw std::runtime_error( std::format("Integer literal overflow ({}x{} would exceed {})", result, base, std::numeric_limits<Uint>::max()) );
+               }
+            result = (base*result) + ascii::value_of_digit(curr_codepoint());
+           }
+        return result;
+       }
+};
+
+int main()
+{
+    SimpleParser parser("32759");
+    std::cout << parser.extract_index<unsigned int>() << '\n';
+}
+
+```
+
+
 🍕🍞🧀🍇🍌☕🍄🌿🌸🔥💥🌋🌊💧🔩🔦💡🔌
