@@ -1,6 +1,7 @@
 ## [ascii_predicates](https://github.com/matgat/ascii_predicates.git)
 [![linux-test](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml)
 [![ms-test](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
 
 A single header c++ library that provides a `constexpr` type safe
 replacement of `<cctype>`, a set of predicates valid for codepoints
