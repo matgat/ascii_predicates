@@ -24,8 +24,13 @@ What about the others? `char8_t` and `char16_t` are codeunits,
 it doesn't make sense to apply a predicate to them, must
 be combined to form a `char32_t` codepoint.
 Regarding `wchar_t`, leave it in the dark ages where belongs.
-* ❗Since this library is decontaminated from *locales* or *codepages*, the compatibility with `<cctype>` is ensured just for pure *ASCII* characters
-* Generally expect `false` results for codepoints `>= 0x80`.
+
+> [!IMPORTANT]
+> Since this library is decontaminated from *locales* or *codepages*,
+> the compatibility with `<cctype>` is ensured just for pure *ASCII* characters.
+
+> [!NOTE]
+> Generally expect a `false` result for codepoints `>= 0x80`.
 
 
 
@@ -34,7 +39,7 @@ This library uses concepts, so you need a *c++20* compliant compiler
 indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 
 
-
+---
 ### Standard predicates
 
 |                     |                       |
@@ -52,7 +57,7 @@ indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_print()` | aka `std::isprint()`  |
 
 
-
+---
 ### Non-standard predicates
 
 |                              |                                        |
@@ -62,14 +67,14 @@ indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_float()`          | aka `std::digit() or any of "+-.Ee"`   |
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
+> [!NOTE]
+> `is_blank()` is redefined to include all spaces except `\n` to ease
+> the detection of any spaces in the current line.
+> I find that treating `\r` as a generic formatting space is a good
+> tradeoff to deal with the various end-of-line conventions.
 
-`is_blank()` is redefined to include all spaces except `\n` to ease
-the detection of any spaces in the current line.
-I find that treating `\r` as a generic formatting space is a good
-tradeoff to deal with the various end-of-line conventions.
 
-
-
+---
 ### Helper predicates
 Not strictly related to *ASCII*, provided for convenience
 (see `std::predicate` in examples below).
@@ -82,7 +87,7 @@ Not strictly related to *ASCII*, provided for convenience
 | `ascii::is_none_of<C,...>()`           | not contained in a set of codepoints |
 
 
-
+---
 ### Composite predicates
 A non exhaustive collection of examples of how basic and
 helper predicates can be combined together.
@@ -95,7 +100,7 @@ helper predicates can be combined together.
 | `ascii::is_punct_and_none_of<C,...>()` |
 
 
-
+---
 ### Case conversion
 
 |                                 |
@@ -103,18 +108,20 @@ helper predicates can be combined together.
 | `ascii::to_lower(const char c)` |
 | `ascii::to_upper(const char c)` |
 
-Case conversion is included for completeness but since gives meaningful
-results just for codepoints less than `0x80`, it has little practical value.
-To avoid abuse is provided just the `char` overload.
-If you need to check and convert codepoints case, use a unicode library.
+> [!CAUTION]
+> Case conversion is included for completeness but since gives meaningful
+> results just for codepoints less than `0x80`, it has little practical value.
+> To avoid abuse is provided just the `char` overload.
+> If you need to check and convert codepoints case, use a unicode library.
 
 
-
+---
 ### Number conversion
 As convenience for number literal parsing there's a function
 `value_of_digit(ch)` that returns the corresponding value of
 `is_xdigi()`/`is_digit()` characters.
-The returned type is `std::uint8_t`, the easiest to promote
+> [!TIP]
+> The returned type is `std::uint8_t`, the easiest to promote
 to other integral types.
 
 ```cpp
@@ -124,11 +131,11 @@ static_assert( ascii::value_of_digit('z') == 0 );
 ```
 
 
-
+---
 ## Examples
 
 ---
-[simple](https://gcc.godbolt.org/z/rYvbafh5f)
+### [simple](https://gcc.godbolt.org/z/rYvbafh5f)
 
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
@@ -145,7 +152,7 @@ void query_char(const char ch)
 ```
 
 ---
-[overloads](https://gcc.godbolt.org/z/bfxeq7441)
+### [overloads](https://gcc.godbolt.org/z/bfxeq7441)
 
 ```cpp
 #include <iostream>
@@ -169,7 +176,7 @@ int main()
 ```
 
 ---
-[simple loop](https://gcc.godbolt.org/z/eKjco56v8)
+### [simple loop](https://gcc.godbolt.org/z/eKjco56v8)
 
 ```cpp
 #include <iostream>
@@ -196,7 +203,7 @@ int main()
 
 
 ---
-[std algorithm](https://gcc.godbolt.org/z/bjYfT5r41)
+### [std algorithm](https://gcc.godbolt.org/z/bjYfT5r41)
 
 ```cpp
 #include <iostream>
@@ -223,7 +230,7 @@ int main()
 ```
 
 ---
-[predicates lexer](https://gcc.godbolt.org/z/ce1s7G7Ez)
+### [predicates lexer](https://gcc.godbolt.org/z/ce1s7G7Ez)
 
 ```cpp
 #include <iostream>
@@ -286,7 +293,7 @@ int main()
 ```
 
 ---
-[parsing number literal](https://gcc.godbolt.org/z/h7q8rjz7P)
+### [number literals parser](https://gcc.godbolt.org/z/h7q8rjz7P)
 
 ```cpp
 #include <iostream>
