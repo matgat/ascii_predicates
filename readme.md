@@ -119,9 +119,9 @@ helper predicates can be combined together.
 ---
 ### Number conversion
 As convenience for number literal parsing there's a function
-`value_of_digit(ch)` that returns the corresponding value of
-`is_xdigi()`/`is_digit()` characters.
-> [!TIP]
+`value_of_digit(ch)` that returns the numeric value associated
+to the `is_xdigi()`/`is_digit()` character.
+> [!NOTE]
 > The returned type is `std::uint8_t`, the easiest to promote
 to other integral types.
 
