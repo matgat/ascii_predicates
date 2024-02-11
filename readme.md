@@ -35,11 +35,6 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 
 
 
-### Build
-This library uses concepts, so you need a *c++20* compliant compiler
-indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
-
-
 ---
 ### Standard predicates
 
@@ -130,6 +125,25 @@ static_assert( ascii::value_of_digit('4') == 4 );
 static_assert( ascii::value_of_digit('b') == 0xB );
 static_assert( ascii::value_of_digit('z') == 0 );
 ```
+
+
+## Building
+This library uses concepts, so you need a *c++20* compliant compiler
+indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
+
+### Testing
+
+```sh
+$ git clone https://github.com/matgat/ascii_predicates.git
+$ cd ascii_predicates
+$ curl -O https://raw.githubusercontent.com/boost-ext/ut/master/include/boost/ut.hpp
+$ g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -o test test.cpp && ./test
+```
+> [!NOTE]
+> On windows:
+> ```bat
+> $ cl /std:c++latest /permissive- /utf-8 /W4 /WX /EHsc test.cpp
+> ```
 
 
 ---
