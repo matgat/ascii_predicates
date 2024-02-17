@@ -7,7 +7,7 @@ A single header c++ library that provides a `constexpr` type safe
 replacement of `<cctype>`, a set of predicates valid for codepoints
 less than `0x80`.
 
-[basic example](https://gcc.godbolt.org/z/xzoTTf3zT)
+basic example ([godbolt](https://gcc.godbolt.org/z/xzoTTf3zT))
 
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
@@ -132,6 +132,8 @@ This library uses concepts, so you need a *c++20* compliant compiler
 indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 
 ### Testing
+Run unit tests directly in [godbolt](https://gcc.godbolt.org/z/T8zcdexdz)
+or:
 
 ```sh
 $ git clone https://github.com/matgat/ascii_predicates.git
@@ -150,7 +152,7 @@ $ g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -o test
 ## Examples
 
 ---
-### [simple](https://gcc.godbolt.org/z/rYvbafh5f)
+### simple ([godbolt](https://gcc.godbolt.org/z/559vcffsr))
 
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
@@ -167,7 +169,7 @@ void query_char(const char ch)
 ```
 
 ---
-### [overloads](https://gcc.godbolt.org/z/bfxeq7441)
+### overloads ([godbolt](https://gcc.godbolt.org/z/9TcdPEsE5))
 
 ```cpp
 #include <iostream>
@@ -191,7 +193,7 @@ int main()
 ```
 
 ---
-### [simple loop](https://gcc.godbolt.org/z/eKjco56v8)
+### simple loop ([godbolt](https://gcc.godbolt.org/z/P1ccjEc3o))
 
 ```cpp
 #include <iostream>
@@ -218,7 +220,7 @@ int main()
 
 
 ---
-### [std algorithm](https://gcc.godbolt.org/z/bjYfT5r41)
+### std algorithm ([godbolt](https://gcc.godbolt.org/z/54hdGYWeP))
 
 ```cpp
 #include <iostream>
@@ -245,7 +247,7 @@ int main()
 ```
 
 ---
-### [predicates lexer](https://gcc.godbolt.org/z/ce1s7G7Ez)
+### predicates lexer ([godbolt](https://gcc.godbolt.org/z/zjPMnhKvd))
 
 ```cpp
 #include <iostream>
@@ -308,7 +310,7 @@ int main()
 ```
 
 ---
-### [number literals parser](https://gcc.godbolt.org/z/h7q8rjz7P)
+### number literals parser ([godbolt](https://gcc.godbolt.org/z/dPYr7cjxW))
 
 ```cpp
 #include <iostream>
