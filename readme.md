@@ -1,12 +1,13 @@
 ## [ascii_predicates](https://github.com/matgat/ascii_predicates.git)
 [![linux-test](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/linux-test.yml)
 [![ms-test](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml/badge.svg)](https://github.com/matgat/ascii_predicates/actions/workflows/ms-test.yml)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
 
 A single header c++ library that provides a `constexpr` type safe
 replacement of `<cctype>`, a set of predicates valid for codepoints
 less than `0x80`.
 
-[basic example](https://gcc.godbolt.org/z/xzoTTf3zT)
+basic example ([godbolt](https://gcc.godbolt.org/z/xzoTTf3zT))
 
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
@@ -24,17 +25,17 @@ What about the others? `char8_t` and `char16_t` are codeunits,
 it doesn't make sense to apply a predicate to them, must
 be combined to form a `char32_t` codepoint.
 Regarding `wchar_t`, leave it in the dark ages where belongs.
-* ❗ Since this library is decontaminated from locales or codepages, the compatibility with `<cctype>` is ensured just for pure *ASCII* characters
-* Generally expect a `false` result for codepoints `>= 0x80`.
+
+> [!IMPORTANT]
+> Since this library is decontaminated from *locales* or *codepages*,
+> the compatibility with `<cctype>` is ensured just for pure *ASCII* characters.
+
+> [!NOTE]
+> Generally expect a `false` result for codepoints `>= 0x80`.
 
 
 
-#Build
-Uses concepts, so you need a *c++20* compliant compiler indicating
-at least `-std=c++20` (`/std:c++20` in case of *msvc*).
-
-
-
+---
 ### Standard predicates
 
 |                     |                       |
@@ -51,10 +52,8 @@ at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_graph()` | aka `std::isgraph()`  |
 | `ascii::is_print()` | aka `std::isprint()`  |
 
-* ❗ `ascii::is_lower()` and `ascii::is_upper()` are the easiest to misuse
 
-
-
+---
 ### Non-standard predicates
 
 |                              |                                        |
@@ -64,14 +63,14 @@ at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 | `ascii::is_float()`          | aka `std::digit() or any of "+-.Ee"`   |
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
 | `ascii::is_endline()`        | aka `==\n`                             |
+> [!NOTE]
+> `is_blank()` is redefined to include all spaces except `\n` to ease
+> the detection of any spaces in the current line.
+> I find that treating `\r` as a generic formatting space is a good
+> tradeoff to deal with the various end-of-line conventions.
 
-I redefined `is_blank()` to include all spaces except `\n` to enable
-it to detect any spaces in the current line.
-I find that treating `\r` as a generic formatting space is a good
-tradeoff to deal with the various end-of-line conventions.
 
-
-
+---
 ### Helper predicates
 Not strictly related to *ASCII*, provided for convenience
 (see `std::predicate` in examples below).
@@ -84,7 +83,7 @@ Not strictly related to *ASCII*, provided for convenience
 | `ascii::is_none_of<C,...>()`           | not contained in a set of codepoints |
 
 
-
+---
 ### Composite predicates
 A non exhaustive collection of examples of how basic and
 helper predicates can be combined together.
@@ -97,7 +96,7 @@ helper predicates can be combined together.
 | `ascii::is_punct_and_none_of<C,...>()` |
 
 
-
+---
 ### Case conversion
 
 |                                 |
@@ -105,18 +104,21 @@ helper predicates can be combined together.
 | `ascii::to_lower(const char c)` |
 | `ascii::to_upper(const char c)` |
 
-This is included for completeness but since gives meaningful results just
-for codepoints less than `0x80`, is provided just the `char` overload.
-If you need to check and convert codepoints case, use a unicode library.
+> [!CAUTION]
+> Case conversion is included for completeness but since gives meaningful
+> results just for codepoints less than `0x80`, it has little practical value.
+> To avoid abuse is provided just the `char` overload.
+> If you need to check and convert codepoints case, use a unicode library.
 
 
-
+---
 ### Number conversion
-As convenience for hand-made number conversion (see `std::from_chars()`),
-is provided a function `value_of_digit()` that returns a non null
-integral for `is_digit()` or `is_xdigi()` characters.
-The returned integral type is `std::uint8_t`, the easiest to promote to
-other integrals types.
+As convenience for number literal parsing there's a function
+`value_of_digit(ch)` that returns the numeric value associated
+to the `is_xdigi()`/`is_digit()` character.
+> [!NOTE]
+> The returned type is `std::uint8_t`, the easiest to promote
+to other integral types.
 
 ```cpp
 static_assert( ascii::value_of_digit('4') == 4 );
@@ -125,11 +127,33 @@ static_assert( ascii::value_of_digit('z') == 0 );
 ```
 
 
+## Building
+This library uses concepts, so you need a *c++20* compliant compiler
+indicating at least `-std=c++20` (`/std:c++20` in case of *msvc*).
 
+### Testing
+Run unit tests directly in [godbolt](https://gcc.godbolt.org/z/T8zcdexdz)
+or:
+
+```sh
+$ git clone https://github.com/matgat/ascii_predicates.git
+$ cd ascii_predicates
+$ curl -O https://raw.githubusercontent.com/boost-ext/ut/master/include/boost/ut.hpp
+$ g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -o test test.cpp && ./test
+```
+
+> [!NOTE]
+> On windows:
+> ```bat
+> $ cl /std:c++latest /permissive- /utf-8 /W4 /WX /EHsc test.cpp
+> ```
+
+
+---
 ## Examples
 
 ---
-[simple](https://gcc.godbolt.org/z/rYvbafh5f)
+### simple ([godbolt](https://gcc.godbolt.org/z/559vcffsr))
 
 ```cpp
 #include "ascii_predicates.hpp" // ascii::is_*
@@ -146,7 +170,7 @@ void query_char(const char ch)
 ```
 
 ---
-[overloads](https://gcc.godbolt.org/z/bfxeq7441)
+### overloads ([godbolt](https://gcc.godbolt.org/z/9TcdPEsE5))
 
 ```cpp
 #include <iostream>
@@ -170,7 +194,7 @@ int main()
 ```
 
 ---
-[simple loop](https://gcc.godbolt.org/z/eKjco56v8)
+### simple loop ([godbolt](https://gcc.godbolt.org/z/P1ccjEc3o))
 
 ```cpp
 #include <iostream>
@@ -197,7 +221,7 @@ int main()
 
 
 ---
-[std algorithm](https://gcc.godbolt.org/z/bjYfT5r41)
+### std algorithm ([godbolt](https://gcc.godbolt.org/z/54hdGYWeP))
 
 ```cpp
 #include <iostream>
@@ -224,7 +248,7 @@ int main()
 ```
 
 ---
-[predicates lexer](https://gcc.godbolt.org/z/ce1s7G7Ez)
+### predicates lexer ([godbolt](https://gcc.godbolt.org/z/zjPMnhKvd))
 
 ```cpp
 #include <iostream>
@@ -286,4 +310,96 @@ int main()
 
 ```
 
+---
+### number literals parser ([godbolt](https://gcc.godbolt.org/z/dPYr7cjxW))
+
+```cpp
+#include <iostream>
+#include <format>
+#include <string_view>
+#include <stdexcept>
+#include <concepts>
+#include <limits>
+#include "ascii_predicates.hpp" // ascii::is_*
+
+class SimpleParser
+{
+ public:
+    const std::string_view input;
+ private:
+    std::size_t i = 0;
+
+ public:
+    constexpr explicit SimpleParser(const std::string_view buf) noexcept
+      : input(buf)
+       {}
+
+    [[nodiscard]] constexpr bool got_digit() const noexcept { return i<input.size() and ascii::is_digit(input[i]); }
+    [[nodiscard]] constexpr char curr_codepoint() const noexcept { return i<input.size() ? input[i] : '\0'; }
+    [[maybe_unused]] constexpr bool get_next() noexcept
+       {
+        if( i<input.size() ) [[likely]]
+           {
+            return ++i<input.size();
+           }
+        return false;
+       }
+
+    template<std::unsigned_integral Uint>
+    [[nodiscard]] constexpr Uint extract_index()
+       {
+        if( not got_digit() )
+           {
+            throw std::runtime_error( std::format("Invalid char '{}' in number literal", curr_codepoint()) );
+           }
+    
+        Uint result = ascii::value_of_digit(curr_codepoint());
+        constexpr Uint base = 10u;
+        constexpr Uint overflow_limit = ((std::numeric_limits<Uint>::max() - (base - 1u)) / (base)) - 1u;
+        while( get_next() and got_digit() )
+           {
+            if( result>overflow_limit )
+               {
+                throw std::runtime_error( std::format("Integer literal overflow ({}x{} would exceed {})", result, base, std::numeric_limits<Uint>::max()) );
+               }
+            result = (base*result) + ascii::value_of_digit(curr_codepoint());
+           }
+        return result;
+       }
+};
+
+int main()
+{
+    SimpleParser parser("32759");
+    std::cout << parser.extract_index<unsigned int>() << '\n';
+}
+
+```
+
+
 🍕🍞🧀🍇🍌☕🍄🌿🌸🔥💥🌋🌊💧🔩🔦💡🔌
+
+
+
+---
+## Appendix
+
+### The standard [`<cctype>`](https://en.cppreference.com/w/cpp/header/cctype) behavior
+
+| ASCII     | Characters                | is cntrl   | is print | is graph | is space | is blank | is punct | is alnum | is alpha | is upper | is lower | is digit | is xdigit |
+|-----------|---------------------------|:----------:|:--------:|:--------:|:--------:|:--------:|:--------:|:--------:|:--------:|:--------:|:--------:|:--------:|:---------:|
+| 0 ÷ 8     | control codes (`NUL`, …)  |    ▣      |          |          |          |          |          |          |          |          |          |          |           |
+| 9         | tab (`\t`)                |    ▣      |          |          |    ▣     |    ▣     |          |          |          |          |          |          |           |
+| 10 ÷ 13   | whitespaces (`\n`,`\v`,`\f`,`\r`) | ▣ |          |          |    ▣     |          |          |          |          |          |          |          |           |
+| 14 ÷ 31   | control codes (`SO`, …) |    ▣      |          |          |          |          |          |          |          |          |          |          |           |
+| 32        | space (`' '`)             |           |    ▣     |          |    ▣     |    ▣     |          |          |          |          |          |          |           |
+| 33 ÷ 47   | `!\"#$%&'` `()*+,-./`    |           |    ▣     |    ▣     |          |          |    ▣     |          |          |          |          |          |           |
+| 48 ÷ 57   | `0123456789`              |           |    ▣     |    ▣     |          |          |          |    ▣     |          |          |          |    ▣     |    ▣      |
+| 58 ÷ 64   | `:;<=>?@`           |           |    ▣     |    ▣     |          |          |    ▣     |          |          |          |          |          |           |
+| 65 ÷ 70   | `ABCDEF`                  |           |    ▣     |    ▣     |          |          |          |    ▣     |    ▣     |    ▣     |          |          |    ▣      |
+| 71 ÷ 90   | `GHIJKLMNOPQ` `RSTUVWXYZ`    |           |    ▣     |    ▣     |          |          |          |    ▣     |    ▣     |    ▣     |          |          |           |
+| 91 ÷ 96   | `` [\\]^_` ``                  |           |    ▣     |    ▣     |          |          |    ▣     |          |          |          |          |          |           |
+| 97 ÷ 102  | `abcdef`                  |           |    ▣     |    ▣     |          |          |          |    ▣     |    ▣     |          |    ▣     |          |    ▣      |
+| 103 ÷ 122 | `ghijklmnopq` `rstuvwxyz`    |           |    ▣     |    ▣     |          |          |          |    ▣     |    ▣     |          |    ▣     |          |           |
+| 123 ÷ 126 | `{\|}~ `                   |           |    ▣     |    ▣     |          |          |    ▣     |          |          |          |          |          |           |
+| 127       | backspace (`DEL`)         |    ▣      |          |          |          |          |          |          |          |          |          |          |           |

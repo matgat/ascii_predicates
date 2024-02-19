@@ -6,7 +6,7 @@
 //  ---------------------------------------------
 #include <concepts> // std::same_as<>
 #include <cstdint> // std::uint16_t
-#include <limits> // std::numeric_limits
+#include <limits> // std::numeric_limits<>
 
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -27,24 +27,24 @@ template<typename T> concept CharLike = std::same_as<T, char> or
 
 namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 {   // The standard <cctype> behavior:
-    // |         |                           |is   |is   |is   |is   |is   |is   |is   |is   |is   |is   |is   |is    |
-    // | ASCII   | characters                |cntrl|print|graph|space|blank|punct|alnum|alpha|upper|lower|digit|xdigit|
-    // |---------|---------------------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|------|
-    // | 0–8     | control codes (NUL, etc.) |  X  |     |     |     |     |     |     |     |     |     |     |      |
-    // | 9       | tab (\t)                  |  X  |     |     |  X  |  X  |     |     |     |     |     |     |      |
-    // | 10–13   | whitespaces (\n,\v,\f,\r) |  X  |     |     |  X  |     |     |     |     |     |     |     |      |
-    // | 14–31   | control codes             |  X  |     |     |     |     |     |     |     |     |     |     |      |
-    // | 32      | space (' ')               |     |  X  |     |  X  |  X  |     |     |     |     |     |     |      |
-    // | 33–47   | !"#$%&amp;'()*+,-./       |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
-    // | 48–57   | 0123456789                |     |  X  |  X  |     |     |     |  X  |     |     |     |  X  |  X   |
-    // | 58–64   | :;&lt;=&gt;?@             |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
-    // | 65–70   | ABCDEF                    |     |  X  |  X  |     |     |     |  X  |  X  |  X  |     |     |  X   |
-    // | 71–90   | GHIJKLMNOPQRSTUVWXYZ      |     |  X  |  X  |     |     |     |  X  |  X  |  X  |     |     |      |
-    // | 91–96   | [\]^_`                    |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
-    // | 97–102  | abcdef                    |     |  X  |  X  |     |     |     |  X  |  X  |     |  X  |     |  X   |
-    // | 103–122 | ghijklmnopqrstuvwxyz      |     |  X  |  X  |     |     |     |  X  |  X  |     |  X  |     |      |
-    // | 123–126 | {|}~                      |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
-    // | 127     | backspace character (DEL) |  X  |     |     |     |     |     |     |     |     |     |     |      |
+    // |       |                         |is   |is   |is   |is   |is   |is   |is   |is   |is   |is   |is   |is    |
+    // | ASCII | characters              |cntrl|print|graph|space|blank|punct|alnum|alpha|upper|lower|digit|xdigit|
+    // |-------|-------------------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|------|
+    // |0:8    |control codes (NUL, ...) |  X  |     |     |     |     |     |     |     |     |     |     |      |
+    // |9      |tab (\t)                 |  X  |     |     |  X  |  X  |     |     |     |     |     |     |      |
+    // |10:13  |whitespaces (\n,\v,\f,\r)|  X  |     |     |  X  |     |     |     |     |     |     |     |      |
+    // |14:31  |control codes (SO, ...)  |  X  |     |     |     |     |     |     |     |     |     |     |      |
+    // |32     |space (' ')              |     |  X  |     |  X  |  X  |     |     |     |     |     |     |      |
+    // |33:47  |!"#$%&amp;'()*+,-./      |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
+    // |48:57  |0123456789               |     |  X  |  X  |     |     |     |  X  |     |     |     |  X  |  X   |
+    // |58:64  |:;&lt;=&gt;?@            |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
+    // |65:70  |ABCDEF                   |     |  X  |  X  |     |     |     |  X  |  X  |  X  |     |     |  X   |
+    // |71:90  |GHIJKLMNOPQRSTUVWXYZ     |     |  X  |  X  |     |     |     |  X  |  X  |  X  |     |     |      |
+    // |91:96  |[\]^_`                   |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
+    // |97:102 |abcdef                   |     |  X  |  X  |     |     |     |  X  |  X  |     |  X  |     |  X   |
+    // |103:122|ghijklmnopqrstuvwxyz     |     |  X  |  X  |     |     |     |  X  |  X  |     |  X  |     |      |
+    // |123:126|{|}~                     |     |  X  |  X  |     |     |  X  |     |     |     |     |     |      |
+    // |127    |backspace (DEL)          |  X  |     |     |     |     |     |     |     |     |     |     |      |
 
     using mask_t = std::uint16_t;
     enum : mask_t
@@ -104,7 +104,7 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                {
                 return details::masks_table[static_cast<unsigned char>(c)] & mask;
                }
-            return 0;
+            return 0u;
            }
        }
 
@@ -130,7 +130,7 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
        {
         // static constexpr char case_bit = '\x20'; // c++23 should allow static constexpr here
         if constexpr( SET ) ch |=  '\x20';
-        else                ch &= ~'\x20'; // '\xDF'
+        else                ch &= ~'\x20';
         return ch;
        }
 
@@ -292,233 +292,233 @@ for( unsigned char ch=0; ch<0x80u; ++ch )
 
 ut::test("basic predicates") = []
    {
-    ut::expect( ut::that % not ascii::is_lower('\1') );
-    ut::expect( ut::that % not ascii::is_upper('\1') );
-    ut::expect( ut::that % not ascii::is_space('\1') );
-    ut::expect( ut::that % not ascii::is_blank('\1') );
-    ut::expect( ut::that % not ascii::is_endline('\1') );
-    ut::expect( ut::that % not ascii::is_alpha('\1') );
-    ut::expect( ut::that % not ascii::is_alnum('\1') );
-    ut::expect( ut::that % not ascii::is_digit('\1') );
-    ut::expect( ut::that % not ascii::is_xdigi('\1') );
-    ut::expect( ut::that % not ascii::is_punct('\1') );
-    ut::expect( ut::that % ascii::is_cntrl('\1') );
-    ut::expect( ut::that % not ascii::is_graph('\1') );
-    ut::expect( ut::that % not ascii::is_print('\1') );
-    ut::expect( ut::that % not ascii::is_ident('\1') );
-    ut::expect( ut::that % not ascii::is_float('\1') );
-    ut::expect( ut::that % not ascii::is_space_or_punct('\1') );
+    ut::expect( not ascii::is_lower('\1') );
+    ut::expect( not ascii::is_upper('\1') );
+    ut::expect( not ascii::is_space('\1') );
+    ut::expect( not ascii::is_blank('\1') );
+    ut::expect( not ascii::is_endline('\1') );
+    ut::expect( not ascii::is_alpha('\1') );
+    ut::expect( not ascii::is_alnum('\1') );
+    ut::expect( not ascii::is_digit('\1') );
+    ut::expect( not ascii::is_xdigi('\1') );
+    ut::expect( not ascii::is_punct('\1') );
+    ut::expect( ascii::is_cntrl('\1') );
+    ut::expect( not ascii::is_graph('\1') );
+    ut::expect( not ascii::is_print('\1') );
+    ut::expect( not ascii::is_ident('\1') );
+    ut::expect( not ascii::is_float('\1') );
+    ut::expect( not ascii::is_space_or_punct('\1') );
 
-    ut::expect( ut::that % ascii::is_lower('a') );
-    ut::expect( ut::that % not ascii::is_upper('a') );
-    ut::expect( ut::that % not ascii::is_space('a') );
-    ut::expect( ut::that % not ascii::is_blank('a') );
-    ut::expect( ut::that % not ascii::is_endline('a') );
-    ut::expect( ut::that % ascii::is_alpha('a') );
-    ut::expect( ut::that % ascii::is_alnum('a') );
-    ut::expect( ut::that % not ascii::is_digit('a') );
-    ut::expect( ut::that % ascii::is_xdigi('a') );
-    ut::expect( ut::that % not ascii::is_punct('a') );
-    ut::expect( ut::that % not ascii::is_cntrl('a') );
-    ut::expect( ut::that % ascii::is_graph('a') );
-    ut::expect( ut::that % ascii::is_print('a') );
-    ut::expect( ut::that % ascii::is_ident('a') );
-    ut::expect( ut::that % not ascii::is_float('a') );
-    ut::expect( ut::that % not ascii::is_space_or_punct('a') );
+    ut::expect( ascii::is_lower('a') );
+    ut::expect( not ascii::is_upper('a') );
+    ut::expect( not ascii::is_space('a') );
+    ut::expect( not ascii::is_blank('a') );
+    ut::expect( not ascii::is_endline('a') );
+    ut::expect( ascii::is_alpha('a') );
+    ut::expect( ascii::is_alnum('a') );
+    ut::expect( not ascii::is_digit('a') );
+    ut::expect( ascii::is_xdigi('a') );
+    ut::expect( not ascii::is_punct('a') );
+    ut::expect( not ascii::is_cntrl('a') );
+    ut::expect( ascii::is_graph('a') );
+    ut::expect( ascii::is_print('a') );
+    ut::expect( ascii::is_ident('a') );
+    ut::expect( not ascii::is_float('a') );
+    ut::expect( not ascii::is_space_or_punct('a') );
 
-    ut::expect( ut::that % not ascii::is_lower('2') );
-    ut::expect( ut::that % not ascii::is_upper('2') );
-    ut::expect( ut::that % not ascii::is_space('2') );
-    ut::expect( ut::that % not ascii::is_blank('2') );
-    ut::expect( ut::that % not ascii::is_endline('2') );
-    ut::expect( ut::that % not ascii::is_alpha('2') );
-    ut::expect( ut::that % ascii::is_alnum('2') );
-    ut::expect( ut::that % ascii::is_digit('2') );
-    ut::expect( ut::that % ascii::is_xdigi('2') );
-    ut::expect( ut::that % not ascii::is_punct('2') );
-    ut::expect( ut::that % not ascii::is_cntrl('2') );
-    ut::expect( ut::that % ascii::is_graph('2') );
-    ut::expect( ut::that % ascii::is_print('2') );
-    ut::expect( ut::that % ascii::is_ident('2') );
-    ut::expect( ut::that % ascii::is_float('2') );
-    ut::expect( ut::that % not ascii::is_space_or_punct('2') );
+    ut::expect( not ascii::is_lower('2') );
+    ut::expect( not ascii::is_upper('2') );
+    ut::expect( not ascii::is_space('2') );
+    ut::expect( not ascii::is_blank('2') );
+    ut::expect( not ascii::is_endline('2') );
+    ut::expect( not ascii::is_alpha('2') );
+    ut::expect( ascii::is_alnum('2') );
+    ut::expect( ascii::is_digit('2') );
+    ut::expect( ascii::is_xdigi('2') );
+    ut::expect( not ascii::is_punct('2') );
+    ut::expect( not ascii::is_cntrl('2') );
+    ut::expect( ascii::is_graph('2') );
+    ut::expect( ascii::is_print('2') );
+    ut::expect( ascii::is_ident('2') );
+    ut::expect( ascii::is_float('2') );
+    ut::expect( not ascii::is_space_or_punct('2') );
 
-    ut::expect( ut::that % not ascii::is_lower('\t') );
-    ut::expect( ut::that % not ascii::is_upper('\t') );
-    ut::expect( ut::that % ascii::is_space('\t') );
-    ut::expect( ut::that % ascii::is_blank('\t') );
-    ut::expect( ut::that % not ascii::is_endline('\t') );
-    ut::expect( ut::that % not ascii::is_alpha('\t') );
-    ut::expect( ut::that % not ascii::is_alnum('\t') );
-    ut::expect( ut::that % not ascii::is_digit('\t') );
-    ut::expect( ut::that % not ascii::is_xdigi('\t') );
-    ut::expect( ut::that % not ascii::is_punct('\t') );
-    ut::expect( ut::that % ascii::is_cntrl('\t') );
-    ut::expect( ut::that % not ascii::is_graph('\t') );
-    ut::expect( ut::that % not ascii::is_print('\t') );
-    ut::expect( ut::that % not ascii::is_ident('\t') );
-    ut::expect( ut::that % not ascii::is_float('\t') );
-    ut::expect( ut::that % ascii::is_space_or_punct('\t') );
+    ut::expect( not ascii::is_lower('\t') );
+    ut::expect( not ascii::is_upper('\t') );
+    ut::expect( ascii::is_space('\t') );
+    ut::expect( ascii::is_blank('\t') );
+    ut::expect( not ascii::is_endline('\t') );
+    ut::expect( not ascii::is_alpha('\t') );
+    ut::expect( not ascii::is_alnum('\t') );
+    ut::expect( not ascii::is_digit('\t') );
+    ut::expect( not ascii::is_xdigi('\t') );
+    ut::expect( not ascii::is_punct('\t') );
+    ut::expect( ascii::is_cntrl('\t') );
+    ut::expect( not ascii::is_graph('\t') );
+    ut::expect( not ascii::is_print('\t') );
+    ut::expect( not ascii::is_ident('\t') );
+    ut::expect( not ascii::is_float('\t') );
+    ut::expect( ascii::is_space_or_punct('\t') );
 
-    ut::expect( ut::that % not ascii::is_lower('\n') );
-    ut::expect( ut::that % not ascii::is_upper('\n') );
-    ut::expect( ut::that % ascii::is_space('\n') );
-    ut::expect( ut::that % not ascii::is_blank('\n') );
-    ut::expect( ut::that % ascii::is_endline('\n') );
-    ut::expect( ut::that % not ascii::is_alpha('\n') );
-    ut::expect( ut::that % not ascii::is_alnum('\n') );
-    ut::expect( ut::that % not ascii::is_digit('\n') );
-    ut::expect( ut::that % not ascii::is_xdigi('\n') );
-    ut::expect( ut::that % not ascii::is_punct('\n') );
-    ut::expect( ut::that % ascii::is_cntrl('\n') );
-    ut::expect( ut::that % not ascii::is_graph('\n') );
-    ut::expect( ut::that % not ascii::is_print('\n') );
-    ut::expect( ut::that % not ascii::is_ident('\n') );
-    ut::expect( ut::that % not ascii::is_float('\n') );
-    ut::expect( ut::that % ascii::is_space_or_punct('\n') );
+    ut::expect( not ascii::is_lower('\n') );
+    ut::expect( not ascii::is_upper('\n') );
+    ut::expect( ascii::is_space('\n') );
+    ut::expect( not ascii::is_blank('\n') );
+    ut::expect( ascii::is_endline('\n') );
+    ut::expect( not ascii::is_alpha('\n') );
+    ut::expect( not ascii::is_alnum('\n') );
+    ut::expect( not ascii::is_digit('\n') );
+    ut::expect( not ascii::is_xdigi('\n') );
+    ut::expect( not ascii::is_punct('\n') );
+    ut::expect( ascii::is_cntrl('\n') );
+    ut::expect( not ascii::is_graph('\n') );
+    ut::expect( not ascii::is_print('\n') );
+    ut::expect( not ascii::is_ident('\n') );
+    ut::expect( not ascii::is_float('\n') );
+    ut::expect( ascii::is_space_or_punct('\n') );
 
-    ut::expect( ut::that % not ascii::is_lower(';') );
-    ut::expect( ut::that % not ascii::is_upper(';') );
-    ut::expect( ut::that % not ascii::is_space(';') );
-    ut::expect( ut::that % not ascii::is_blank(';') );
-    ut::expect( ut::that % not ascii::is_endline(';') );
-    ut::expect( ut::that % not ascii::is_alpha(';') );
-    ut::expect( ut::that % not ascii::is_alnum(';') );
-    ut::expect( ut::that % not ascii::is_digit(';') );
-    ut::expect( ut::that % not ascii::is_xdigi(';') );
-    ut::expect( ut::that % ascii::is_punct(';') );
-    ut::expect( ut::that % not ascii::is_cntrl(';') );
-    ut::expect( ut::that % ascii::is_graph(';') );
-    ut::expect( ut::that % ascii::is_print(';') );
-    ut::expect( ut::that % not ascii::is_ident(';') );
-    ut::expect( ut::that % not ascii::is_float(';') );
-    ut::expect( ut::that % ascii::is_space_or_punct(';') );
+    ut::expect( not ascii::is_lower(';') );
+    ut::expect( not ascii::is_upper(';') );
+    ut::expect( not ascii::is_space(';') );
+    ut::expect( not ascii::is_blank(';') );
+    ut::expect( not ascii::is_endline(';') );
+    ut::expect( not ascii::is_alpha(';') );
+    ut::expect( not ascii::is_alnum(';') );
+    ut::expect( not ascii::is_digit(';') );
+    ut::expect( not ascii::is_xdigi(';') );
+    ut::expect( ascii::is_punct(';') );
+    ut::expect( not ascii::is_cntrl(';') );
+    ut::expect( ascii::is_graph(';') );
+    ut::expect( ascii::is_print(';') );
+    ut::expect( not ascii::is_ident(';') );
+    ut::expect( not ascii::is_float(';') );
+    ut::expect( ascii::is_space_or_punct(';') );
 
-    ut::expect( ut::that % not ascii::is_lower('\xE0') );
-    ut::expect( ut::that % not ascii::is_upper('\xE0') );
-    ut::expect( ut::that % not ascii::is_space('\xE0') );
-    ut::expect( ut::that % not ascii::is_blank('\xE0') );
-    ut::expect( ut::that % not ascii::is_endline('\xE0') );
-    ut::expect( ut::that % not ascii::is_alpha('\xE0') );
-    ut::expect( ut::that % not ascii::is_alnum('\xE0') );
-    ut::expect( ut::that % not ascii::is_digit('\xE0') );
-    ut::expect( ut::that % not ascii::is_xdigi('\xE0') );
-    ut::expect( ut::that % not ascii::is_punct('\xE0') );
-    ut::expect( ut::that % not ascii::is_cntrl('\xE0') );
-    ut::expect( ut::that % not ascii::is_graph('\xE0') );
-    ut::expect( ut::that % not ascii::is_print('\xE0') );
-    ut::expect( ut::that % not ascii::is_ident('\xE0') );
-    ut::expect( ut::that % not ascii::is_float('\xE0') );
-    ut::expect( ut::that % not ascii::is_space_or_punct('\xE0') );
+    ut::expect( not ascii::is_lower('\xE0') );
+    ut::expect( not ascii::is_upper('\xE0') );
+    ut::expect( not ascii::is_space('\xE0') );
+    ut::expect( not ascii::is_blank('\xE0') );
+    ut::expect( not ascii::is_endline('\xE0') );
+    ut::expect( not ascii::is_alpha('\xE0') );
+    ut::expect( not ascii::is_alnum('\xE0') );
+    ut::expect( not ascii::is_digit('\xE0') );
+    ut::expect( not ascii::is_xdigi('\xE0') );
+    ut::expect( not ascii::is_punct('\xE0') );
+    ut::expect( not ascii::is_cntrl('\xE0') );
+    ut::expect( not ascii::is_graph('\xE0') );
+    ut::expect( not ascii::is_print('\xE0') );
+    ut::expect( not ascii::is_ident('\xE0') );
+    ut::expect( not ascii::is_float('\xE0') );
+    ut::expect( not ascii::is_space_or_punct('\xE0') );
 
-    ut::expect( ut::that % not ascii::is_lower(U'🍌') );
-    ut::expect( ut::that % not ascii::is_upper(U'🍌') );
-    ut::expect( ut::that % not ascii::is_space(U'🍌') );
-    ut::expect( ut::that % not ascii::is_blank(U'🍌') );
-    ut::expect( ut::that % not ascii::is_endline(U'🍌') );
-    ut::expect( ut::that % not ascii::is_alpha(U'🍌') );
-    ut::expect( ut::that % not ascii::is_alnum(U'🍌') );
-    ut::expect( ut::that % not ascii::is_digit(U'🍌') );
-    ut::expect( ut::that % not ascii::is_xdigi(U'🍌') );
-    ut::expect( ut::that % not ascii::is_punct(U'🍌') );
-    ut::expect( ut::that % not ascii::is_cntrl(U'🍌') );
-    ut::expect( ut::that % not ascii::is_graph(U'🍌') );
-    ut::expect( ut::that % not ascii::is_print(U'🍌') );
-    ut::expect( ut::that % not ascii::is_ident(U'🍌') );
-    ut::expect( ut::that % not ascii::is_float(U'🍌') );
-    ut::expect( ut::that % not ascii::is_space_or_punct(U'🍌') );
+    ut::expect( not ascii::is_lower(U'🍌') );
+    ut::expect( not ascii::is_upper(U'🍌') );
+    ut::expect( not ascii::is_space(U'🍌') );
+    ut::expect( not ascii::is_blank(U'🍌') );
+    ut::expect( not ascii::is_endline(U'🍌') );
+    ut::expect( not ascii::is_alpha(U'🍌') );
+    ut::expect( not ascii::is_alnum(U'🍌') );
+    ut::expect( not ascii::is_digit(U'🍌') );
+    ut::expect( not ascii::is_xdigi(U'🍌') );
+    ut::expect( not ascii::is_punct(U'🍌') );
+    ut::expect( not ascii::is_cntrl(U'🍌') );
+    ut::expect( not ascii::is_graph(U'🍌') );
+    ut::expect( not ascii::is_print(U'🍌') );
+    ut::expect( not ascii::is_ident(U'🍌') );
+    ut::expect( not ascii::is_float(U'🍌') );
+    ut::expect( not ascii::is_space_or_punct(U'🍌') );
    };
 
 ut::test("spaces predicates") = []
    {
-    ut::expect( ut::that % ascii::is_space(' ')  and ascii::is_blank(' ') and not ascii::is_endline(' ') );
-    ut::expect( ut::that % ascii::is_space('\t') and ascii::is_blank('\t') and not ascii::is_endline('\t') );
-    ut::expect( ut::that % ascii::is_space('\n') and not ascii::is_blank('\n') and ascii::is_endline('\n') );
-    ut::expect( ut::that % ascii::is_space('\r') and ascii::is_blank('\r') and not ascii::is_endline('\r') );
-    ut::expect( ut::that % ascii::is_space('\v') and ascii::is_blank('\v') and not ascii::is_endline('\v') );
-    ut::expect( ut::that % ascii::is_space('\f') and ascii::is_blank('\f') and not ascii::is_endline('\f') );
-    ut::expect( ut::that % not ascii::is_space('\b') and not ascii::is_blank('\b') and not ascii::is_endline('\b') );
+    ut::expect( ascii::is_space(' ')  and ascii::is_blank(' ') and not ascii::is_endline(' ') );
+    ut::expect( ascii::is_space('\t') and ascii::is_blank('\t') and not ascii::is_endline('\t') );
+    ut::expect( ascii::is_space('\n') and not ascii::is_blank('\n') and ascii::is_endline('\n') );
+    ut::expect( ascii::is_space('\r') and ascii::is_blank('\r') and not ascii::is_endline('\r') );
+    ut::expect( ascii::is_space('\v') and ascii::is_blank('\v') and not ascii::is_endline('\v') );
+    ut::expect( ascii::is_space('\f') and ascii::is_blank('\f') and not ascii::is_endline('\f') );
+    ut::expect( not ascii::is_space('\b') and not ascii::is_blank('\b') and not ascii::is_endline('\b') );
    };
 
 ut::test("helper predicates") = []
    {
-    ut::expect( ut::that % not ascii::is_always_false('a') );
-    ut::expect( ut::that % ascii::is<'a'>('a') );
-    ut::expect( ut::that % ascii::is_any_of<'a','\xE0',';'>('a') );
-    ut::expect( ut::that % not ascii::is_none_of<'a','\xE0',';'>('a') );
+    ut::expect( not ascii::is_always_false('a') );
+    ut::expect( ascii::is<'a'>('a') );
+    ut::expect( ascii::is_any_of<'a','\xE0',';'>('a') );
+    ut::expect( not ascii::is_none_of<'a','\xE0',';'>('a') );
 
-    ut::expect( ut::that % not ascii::is_always_false('1') );
-    ut::expect( ut::that % not ascii::is<'a'>('1') );
-    ut::expect( ut::that % not ascii::is_any_of<'a','\xE0',';'>('1') );
-    ut::expect( ut::that % ascii::is_none_of<'a','\xE0',';'>('1') );
+    ut::expect( not ascii::is_always_false('1') );
+    ut::expect( not ascii::is<'a'>('1') );
+    ut::expect( not ascii::is_any_of<'a','\xE0',';'>('1') );
+    ut::expect( ascii::is_none_of<'a','\xE0',';'>('1') );
 
-    ut::expect( ut::that % not ascii::is_always_false(',') );
-    ut::expect( ut::that % not ascii::is<'a'>(',') );
-    ut::expect( ut::that % not ascii::is_any_of<'a','\xE0',';'>(',') );
-    ut::expect( ut::that % ascii::is_none_of<'a','\xE0',';'>(',') );
+    ut::expect( not ascii::is_always_false(',') );
+    ut::expect( not ascii::is<'a'>(',') );
+    ut::expect( not ascii::is_any_of<'a','\xE0',';'>(',') );
+    ut::expect( ascii::is_none_of<'a','\xE0',';'>(',') );
 
-    ut::expect( ut::that % not ascii::is_always_false(';') );
-    ut::expect( ut::that % not ascii::is<'a'>(';') );
-    ut::expect( ut::that % ascii::is_any_of<'a','\xE0',';'>(';') );
-    ut::expect( ut::that % not ascii::is_none_of<'a','\xE0',';'>(';') );
+    ut::expect( not ascii::is_always_false(';') );
+    ut::expect( not ascii::is<'a'>(';') );
+    ut::expect( ascii::is_any_of<'a','\xE0',';'>(';') );
+    ut::expect( not ascii::is_none_of<'a','\xE0',';'>(';') );
 
-    ut::expect( ut::that % not ascii::is_always_false(' ') );
-    ut::expect( ut::that % not ascii::is<'a'>(' ') );
-    ut::expect( ut::that % not ascii::is_any_of<'a','\xE0',';'>(' ') );
-    ut::expect( ut::that % ascii::is_none_of<'a','\xE0',';'>(' ') );
+    ut::expect( not ascii::is_always_false(' ') );
+    ut::expect( not ascii::is<'a'>(' ') );
+    ut::expect( not ascii::is_any_of<'a','\xE0',';'>(' ') );
+    ut::expect( ascii::is_none_of<'a','\xE0',';'>(' ') );
 
-    ut::expect( ut::that % not ascii::is_always_false('\xE0') );
-    ut::expect( ut::that % not ascii::is<'a'>('\xE0') );
-    ut::expect( ut::that % ascii::is_any_of<'a','\xE0',';'>('\xE0') );
-    ut::expect( ut::that % not ascii::is_none_of<'a','\xE0',';'>('\xE0') );
+    ut::expect( not ascii::is_always_false('\xE0') );
+    ut::expect( not ascii::is<'a'>('\xE0') );
+    ut::expect( ascii::is_any_of<'a','\xE0',';'>('\xE0') );
+    ut::expect( not ascii::is_none_of<'a','\xE0',';'>('\xE0') );
 
-    ut::expect( ut::that % not ascii::is_always_false('\xE1') );
-    ut::expect( ut::that % not ascii::is<'a'>('\xE1') );
-    ut::expect( ut::that % not ascii::is_any_of<'a','\xE0',';'>('\xE1') );
-    ut::expect( ut::that % ascii::is_none_of<'a','\xE0',';'>('\xE1') );
+    ut::expect( not ascii::is_always_false('\xE1') );
+    ut::expect( not ascii::is<'a'>('\xE1') );
+    ut::expect( not ascii::is_any_of<'a','\xE0',';'>('\xE1') );
+    ut::expect( ascii::is_none_of<'a','\xE0',';'>('\xE1') );
    };
 
 ut::test("composite predicates") = []
    {
-    ut::expect( ut::that % ascii::is_space_or_any_of<'a','\xE0',';'>('a') );
-    ut::expect( ut::that % ascii::is_alnum_or_any_of<'a','\xE0',';'>('a') );
-    ut::expect( ut::that % not ascii::is_digit_or_any_of<'E',','>('a') );
-    ut::expect( ut::that % not ascii::is_punct_and_none_of<','>('a') );
+    ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>('a') );
+    ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>('a') );
+    ut::expect( not ascii::is_digit_or_any_of<'E',','>('a') );
+    ut::expect( not ascii::is_punct_and_none_of<','>('a') );
 
-    ut::expect( ut::that % not ascii::is_space_or_any_of<'a','\xE0',';'>('1') );
-    ut::expect( ut::that % ascii::is_alnum_or_any_of<'a','\xE0',';'>('1') );
-    ut::expect( ut::that % ascii::is_digit_or_any_of<'E',','>('1') );
-    ut::expect( ut::that % not ascii::is_punct_and_none_of<','>('1') );
+    ut::expect( not ascii::is_space_or_any_of<'a','\xE0',';'>('1') );
+    ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>('1') );
+    ut::expect( ascii::is_digit_or_any_of<'E',','>('1') );
+    ut::expect( not ascii::is_punct_and_none_of<','>('1') );
 
-    ut::expect( ut::that % not ascii::is_space_or_any_of<'a','\xE0',';'>(',') );
-    ut::expect( ut::that % not ascii::is_alnum_or_any_of<'a','\xE0',';'>(',') );
-    ut::expect( ut::that % ascii::is_digit_or_any_of<'E',','>(',') );
-    ut::expect( ut::that % not ascii::is_punct_and_none_of<','>(',') );
+    ut::expect( not ascii::is_space_or_any_of<'a','\xE0',';'>(',') );
+    ut::expect( not ascii::is_alnum_or_any_of<'a','\xE0',';'>(',') );
+    ut::expect( ascii::is_digit_or_any_of<'E',','>(',') );
+    ut::expect( not ascii::is_punct_and_none_of<','>(',') );
 
-    ut::expect( ut::that % ascii::is_space_or_any_of<'a','\xE0',';'>(';') );
-    ut::expect( ut::that % ascii::is_alnum_or_any_of<'a','\xE0',';'>(';') );
-    ut::expect( ut::that % not ascii::is_digit_or_any_of<'E',','>(';') );
-    ut::expect( ut::that % ascii::is_punct_and_none_of<','>(';') );
+    ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>(';') );
+    ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>(';') );
+    ut::expect( not ascii::is_digit_or_any_of<'E',','>(';') );
+    ut::expect( ascii::is_punct_and_none_of<','>(';') );
 
-    ut::expect( ut::that % ascii::is_space_or_any_of<'a','\xE0',';'>(' ') );
-    ut::expect( ut::that % not ascii::is_alnum_or_any_of<'a','\xE0',';'>(' ') );
-    ut::expect( ut::that % not ascii::is_digit_or_any_of<'E',','>(' ') );
-    ut::expect( ut::that % not ascii::is_punct_and_none_of<','>(' ') );
+    ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>(' ') );
+    ut::expect( not ascii::is_alnum_or_any_of<'a','\xE0',';'>(' ') );
+    ut::expect( not ascii::is_digit_or_any_of<'E',','>(' ') );
+    ut::expect( not ascii::is_punct_and_none_of<','>(' ') );
 
-    ut::expect( ut::that % ascii::is_space_or_any_of<'a','\xE0',';'>('\xE0') );
-    ut::expect( ut::that % ascii::is_alnum_or_any_of<'a','\xE0',';'>('\xE0') );
-    ut::expect( ut::that % not ascii::is_digit_or_any_of<'E',','>('\xE0') );
-    ut::expect( ut::that % not ascii::is_punct_and_none_of<','>('\xE0') );
+    ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>('\xE0') );
+    ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>('\xE0') );
+    ut::expect( not ascii::is_digit_or_any_of<'E',','>('\xE0') );
+    ut::expect( not ascii::is_punct_and_none_of<','>('\xE0') );
 
-    ut::expect( ut::that % not ascii::is_space_or_any_of<'a','\xE0',';'>('\xE1') );
-    ut::expect( ut::that % not ascii::is_alnum_or_any_of<'a','\xE0',';'>('\xE1') );
-    ut::expect( ut::that % not ascii::is_digit_or_any_of<'E',','>('\xE1') );
-    ut::expect( ut::that % not ascii::is_punct_and_none_of<','>('\xE1') );
+    ut::expect( not ascii::is_space_or_any_of<'a','\xE0',';'>('\xE1') );
+    ut::expect( not ascii::is_alnum_or_any_of<'a','\xE0',';'>('\xE1') );
+    ut::expect( not ascii::is_digit_or_any_of<'E',','>('\xE1') );
+    ut::expect( not ascii::is_punct_and_none_of<','>('\xE1') );
    };
 
 ut::test("implicit conversions") = []
    {
-    ut::expect( ut::that % ascii::is_any_of<U'a',L'b',u8'c','d'>('b') );
+    ut::expect( ascii::is_any_of<U'a',L'b',u8'c','d'>('b') );
    };
 
 ut::test("non ascii char32_t") = []
@@ -771,7 +771,16 @@ ut::test("value_of_digit()") = []
     ut::expect( ut::that % ascii::value_of_digit('D') == 0xDu);
     ut::expect( ut::that % ascii::value_of_digit('E') == 0xEu);
     ut::expect( ut::that % ascii::value_of_digit('F') == 0xFu);
+    ut::expect( ut::that % ascii::value_of_digit('G') == 0u);
+    ut::expect( ut::that % ascii::value_of_digit('a') == 0xAu);
+    ut::expect( ut::that % ascii::value_of_digit('b') == 0xBu);
+    ut::expect( ut::that % ascii::value_of_digit('c') == 0xCu);
+    ut::expect( ut::that % ascii::value_of_digit('d') == 0xDu);
+    ut::expect( ut::that % ascii::value_of_digit('e') == 0xEu);
+    ut::expect( ut::that % ascii::value_of_digit('f') == 0xFu);
+    ut::expect( ut::that % ascii::value_of_digit('g') == 0u);
     ut::expect( ut::that % ascii::value_of_digit('z') == 0u);
+    ut::expect( ut::that % ascii::value_of_digit(';') == 0u);
 
     ut::expect( ut::that % ascii::value_of_digit(U'0') == 0u);
     ut::expect( ut::that % ascii::value_of_digit(U'1') == 1u);
@@ -789,6 +798,14 @@ ut::test("value_of_digit()") = []
     ut::expect( ut::that % ascii::value_of_digit(U'D') == 0xDu);
     ut::expect( ut::that % ascii::value_of_digit(U'E') == 0xEu);
     ut::expect( ut::that % ascii::value_of_digit(U'F') == 0xFu);
+    ut::expect( ut::that % ascii::value_of_digit(U'G') == 0u);
+    ut::expect( ut::that % ascii::value_of_digit(U'a') == 0xAu);
+    ut::expect( ut::that % ascii::value_of_digit(U'b') == 0xBu);
+    ut::expect( ut::that % ascii::value_of_digit(U'c') == 0xCu);
+    ut::expect( ut::that % ascii::value_of_digit(U'd') == 0xDu);
+    ut::expect( ut::that % ascii::value_of_digit(U'e') == 0xEu);
+    ut::expect( ut::that % ascii::value_of_digit(U'f') == 0xFu);
+    ut::expect( ut::that % ascii::value_of_digit(U'g') == 0u);
     ut::expect( ut::that % ascii::value_of_digit(U'z') == 0u);
     ut::expect( ut::that % ascii::value_of_digit(U'🍄') == 0u);
    };
