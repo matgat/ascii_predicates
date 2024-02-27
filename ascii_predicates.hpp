@@ -270,8 +270,6 @@ for( unsigned char ch=0; ch<0x80u; ++ch )
    {
     ut::test( std::to_string(static_cast<int>(ch)) ) = [ch]
        {
-        //ut::log << fmt::format("standard predicates on '\\x{:X}'\n",ch);
-
         //ut::expect( ut::that % ascii::is_blank(ch) == (std::isblank(ch)!=0) ); // mine's not standard
         ut::expect( ut::that % ascii::is_alnum(ch) == (std::isalnum(ch)!=0) ) << "(char '" << ch << "')\n";
         ut::expect( ut::that % ascii::is_alpha(ch) == (std::isalpha(ch)!=0) ) << "(char '" << ch << "')\n";
