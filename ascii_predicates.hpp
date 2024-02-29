@@ -213,6 +213,12 @@ template<CharLike auto C1, decltype(C1)... CS>
    }
 
 template<CharLike auto C1, decltype(C1)... CS>
+[[nodiscard]] constexpr bool is_alpha_or_any_of(const decltype(C1) c) noexcept
+   {
+    return is_alpha(c) or is_any_of<C1, CS ...>(c);
+   }
+
+template<CharLike auto C1, decltype(C1)... CS>
 [[nodiscard]] constexpr bool is_alnum_or_any_of(const decltype(C1) c) noexcept
    {
     return is_alnum(c) or is_any_of<C1, CS ...>(c);
@@ -479,36 +485,43 @@ ut::test("helper predicates") = []
 ut::test("composite predicates") = []
    {
     ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>('a') );
+    ut::expect( ascii::is_alpha_or_any_of<'a','\xE0',';'>('a') );
     ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>('a') );
     ut::expect( not ascii::is_digit_or_any_of<'E',','>('a') );
     ut::expect( not ascii::is_punct_and_none_of<','>('a') );
 
     ut::expect( not ascii::is_space_or_any_of<'a','\xE0',';'>('1') );
+    ut::expect( not ascii::is_alpha_or_any_of<'a','\xE0',';'>('1') );
     ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>('1') );
     ut::expect( ascii::is_digit_or_any_of<'E',','>('1') );
     ut::expect( not ascii::is_punct_and_none_of<','>('1') );
 
     ut::expect( not ascii::is_space_or_any_of<'a','\xE0',';'>(',') );
+    ut::expect( not ascii::is_alpha_or_any_of<'a','\xE0',';'>(',') );
     ut::expect( not ascii::is_alnum_or_any_of<'a','\xE0',';'>(',') );
     ut::expect( ascii::is_digit_or_any_of<'E',','>(',') );
     ut::expect( not ascii::is_punct_and_none_of<','>(',') );
 
     ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>(';') );
+    ut::expect( ascii::is_alpha_or_any_of<'a','\xE0',';'>(';') );
     ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>(';') );
     ut::expect( not ascii::is_digit_or_any_of<'E',','>(';') );
     ut::expect( ascii::is_punct_and_none_of<','>(';') );
 
     ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>(' ') );
+    ut::expect( not ascii::is_alpha_or_any_of<'a','\xE0',';'>(' ') );
     ut::expect( not ascii::is_alnum_or_any_of<'a','\xE0',';'>(' ') );
     ut::expect( not ascii::is_digit_or_any_of<'E',','>(' ') );
     ut::expect( not ascii::is_punct_and_none_of<','>(' ') );
 
     ut::expect( ascii::is_space_or_any_of<'a','\xE0',';'>('\xE0') );
+    ut::expect( ascii::is_alpha_or_any_of<'a','\xE0',';'>('\xE0') );
     ut::expect( ascii::is_alnum_or_any_of<'a','\xE0',';'>('\xE0') );
     ut::expect( not ascii::is_digit_or_any_of<'E',','>('\xE0') );
     ut::expect( not ascii::is_punct_and_none_of<','>('\xE0') );
 
     ut::expect( not ascii::is_space_or_any_of<'a','\xE0',';'>('\xE1') );
+    ut::expect( not ascii::is_alpha_or_any_of<'a','\xE0',';'>('\xE1') );
     ut::expect( not ascii::is_alnum_or_any_of<'a','\xE0',';'>('\xE1') );
     ut::expect( not ascii::is_digit_or_any_of<'E',','>('\xE1') );
     ut::expect( not ascii::is_punct_and_none_of<','>('\xE1') );

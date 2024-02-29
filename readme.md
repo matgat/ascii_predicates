@@ -91,6 +91,7 @@ helper predicates can be combined together.
 |                                        |
 |----------------------------------------|
 | `ascii::is_space_or_any_of<C,...>()`   |
+| `ascii::is_alpha_or_any_of<C,...>()`   |
 | `ascii::is_alnum_or_any_of<C,...>()`   |
 | `ascii::is_digit_or_any_of<C,...>()`   |
 | `ascii::is_punct_and_none_of<C,...>()` |
