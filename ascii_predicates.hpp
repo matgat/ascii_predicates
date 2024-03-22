@@ -2,7 +2,7 @@
 //  ---------------------------------------------
 //  ASCII encoding predicates and facilities
 //  ---------------------------------------------
-//  #include "ascii_predicates.hpp" // ascii::is_*
+//  #include "ascii_predicates.hpp" // ascii::*
 //  ---------------------------------------------
 #include <concepts> // std::same_as<>
 #include <cstdint> // std::uint16_t
@@ -13,7 +13,7 @@
 namespace ascii //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 {
 
-// Supporting the following character types:
+// Supporting the following codepoints types:
 template<typename T> concept CharLike = std::same_as<T, char> or
                                         std::same_as<T, unsigned char> or
                                         std::same_as<T, char32_t>;
@@ -116,11 +116,11 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
        }
 
     //-----------------------------------------------------------------------
-    template<CharLike Char>
-    [[nodiscard]] inline constexpr bool check_all(const Char c, const mask_t mask) noexcept
-       {
-        return apply_mask(c, mask) == mask;
-       }
+    //template<CharLike Char>
+    //[[nodiscard]] inline constexpr bool check_all(const Char c, const mask_t mask) noexcept
+    //   {
+    //    return apply_mask(c, mask) == mask;
+    //   }
 
 
     //-----------------------------------------------------------------------
@@ -128,7 +128,7 @@ namespace details //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     template<bool SET>
     [[nodiscard]] inline constexpr char set_case_bit(char ch) noexcept
        {
-        // static constexpr char case_bit = '\x20'; // c++23 should allow static constexpr here
+        //static constexpr char case_bit = '\x20';
         if constexpr( SET ) ch |=  '\x20';
         else                ch &= ~'\x20';
         return ch;
@@ -151,7 +151,7 @@ template<CharLike Char> [[nodiscard]] constexpr bool is_cntrl(const Char c) noex
 template<CharLike Char> [[nodiscard]] constexpr bool is_graph(const Char c) noexcept { return details::apply_mask(c, details::ISPRINT | details::ISBLANK) == details::ISPRINT; }
 template<CharLike Char> [[nodiscard]] constexpr bool is_print(const Char c) noexcept { return details::check_any(c, details::ISPRINT); }
 // Non standard ones
-template<CharLike Char> [[nodiscard]] constexpr bool is_blank(const Char c) noexcept { return details::check_any(c, details::ISBLANK); } // not equiv to std::isblank
+template<CharLike Char> [[nodiscard]] constexpr bool is_blank(const Char c) noexcept { return details::check_any(c, details::ISBLANK); } // std::isspace and not '\n'
 template<CharLike Char> [[nodiscard]] constexpr bool is_ident(const Char c) noexcept { return details::check_any(c, details::ISIDENT); } // std::isalnum or _
 template<CharLike Char> [[nodiscard]] constexpr bool is_float(const Char c) noexcept { return details::check_any(c, details::ISFLOAT); } // std::isdigit or any of "+-.Ee"
 template<CharLike Char> [[nodiscard]] constexpr bool is_space_or_punct(const Char c) noexcept { return details::check_any(c, details::ISSPACE | details::ISPUNCT); }
@@ -239,7 +239,7 @@ template<CharLike auto C1, decltype(C1)... CS>
 
 
 //---------------------------------------------------------------------------
-// Case conversion (only for ASCII char, so not so useful!)
+// Case conversion only for ASCII char
 [[nodiscard]] constexpr char to_lower(char ch) noexcept { if(is_upper(ch)) ch = details::set_case_bit<true>(ch); return ch; }
 [[nodiscard]] constexpr char to_upper(char ch) noexcept { if(is_lower(ch)) ch = details::set_case_bit<false>(ch); return ch; }
 
