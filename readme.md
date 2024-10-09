@@ -62,7 +62,7 @@ Regarding `wchar_t`, leave it in the dark ages where belongs.
 | `ascii::is_ident()`          | aka `std::isalnum() or =='_'`          |
 | `ascii::is_float()`          | aka `std::digit() or any of "+-.Ee"`   |
 | `ascii::is_space_or_punct()` | aka `std::isspace() or std::ispunct()` |
-| `ascii::is_endline()`        | aka `==\n`                             |
+| `ascii::is_endline()`        | aka `=='\n'`                           |
 > [!NOTE]
 > `is_blank()` is redefined to include all spaces except `\n` to ease
 > the detection of any spaces in the current line.
